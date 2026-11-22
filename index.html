@@ -12,9 +12,9 @@
   <link rel="preload" href="textures/moon_relief_1k.webp" as="fetch" crossorigin>
   <link rel="stylesheet" href="styles/main.css">
 </head>
-<body data-world="observatoire">
+<body data-world="observatoire" class="in-ritual">
   <div class="sky" aria-hidden="true">
-    <canvas id="stars"></canvas>
+    <canvas id="sky"></canvas>
     <div class="twinkles" id="twinkles"></div>
   </div>
 
@@ -41,6 +41,8 @@
         <div class="halo" id="halo"></div>
         <canvas id="moon" aria-label="La Lune"></canvas>
         <button class="today" id="today-btn" hidden>Aujourd'hui</button>
+        <button class="noct-btn" id="noct-btn" aria-label="Le nocturlabe : la Grande Ourse en ce moment"></button>
+        <button class="seal-btn" id="seal-btn" hidden aria-label="Un sceau de cire : la page secrète de la pleine lune"></button>
       </div>
 
       <div class="phase">
@@ -105,6 +107,17 @@
   <div class="sheet" id="settings" aria-hidden="true">
     <div class="sheet-grip" id="settings-grip"><span></span></div>
     <div class="sheet-body" id="settings-body"></div>
+  </div>
+  <!-- La Grande Ourse -->
+  <div class="sheet" id="ursa" aria-hidden="true">
+    <div class="sheet-grip" id="ursa-grip"><span></span></div>
+    <div class="sheet-body" id="ursa-body"></div>
+  </div>
+
+  <!-- Page secrète -->
+  <div class="sheet sheet-secret" id="secret" aria-hidden="true">
+    <div class="sheet-grip" id="secret-grip"><span></span></div>
+    <div class="sheet-body" id="secret-body"></div>
   </div>
   <div class="scrim" id="scrim"></div>
 

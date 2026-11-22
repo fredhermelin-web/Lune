@@ -88,7 +88,8 @@ export function renderSettings(body, onChange) {
     ${sw('earthshine', 'Lumière cendrée', 'La Terre éclaire la face nocturne')}
     ${sw('haptics', 'Petit « tic » au défilement', 'Vibration légère à chaque jour')}
     <p class="credit">Cartes de la Lune : NASA Scientific Visualization Studio, CGI Moon Kit (LRO · LROC WAC, LOLA).<br>
-    Calculs : astronomy-engine, Don Cross (licence MIT).<br>Recherche de commune : Base Adresse Nationale (IGN / data.gouv.fr).</p>
+    Calculs : astronomy-engine, Don Cross (licence MIT).<br>
+    Étoiles : d3-celestial (O. Frohn) d’après la base HYG (D. Nash).<br>Recherche de commune : Base Adresse Nationale (IGN / data.gouv.fr).</p>
     <p class="motto-small">Ursine, le temps venra</p>`;
 
   body.querySelectorAll('.switch').forEach((b) => b.addEventListener('click', () => {

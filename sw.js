@@ -1,11 +1,12 @@
 // Service worker : toute l'application est gardée sur le téléphone et fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour pour que le téléphone récupère les nouveaux fichiers.
-const VERSION = 'lune-v1';
+const VERSION = 'lune-v2';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'styles/main.css',
-  'src/main.js', 'src/state.js', 'src/astro.js', 'src/format.js', 'src/moon-renderer.js', 'src/starfield.js',
+  'src/main.js', 'src/state.js', 'src/astro.js', 'src/format.js', 'src/moon-renderer.js',
   'src/scrub.js', 'src/timeline.js', 'src/curve.js', 'src/phase-icon.js', 'src/panels.js',
-  'vendor/astronomy.js',
+  'src/sky.js', 'src/sky-renderer.js', 'src/nocturlabe.js', 'src/secrets.js', 'src/thoughts.js', 'src/ritual.js',
+  'vendor/astronomy.js', 'data/sky.json',
   'textures/moon_color_1k.jpg', 'textures/moon_relief_1k.webp', 'textures/moon_color_4k.jpg', 'textures/moon_relief_4k.webp',
   'fonts/eb-garamond-400-normal.woff2', 'fonts/eb-garamond-500-normal.woff2', 'fonts/eb-garamond-400-italic.woff2',
   'fonts/inter-300-normal.woff2', 'fonts/inter-400-normal.woff2', 'fonts/inter-500-normal.woff2',

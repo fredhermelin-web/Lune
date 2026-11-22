@@ -41,6 +41,7 @@ Dans ce mode, ni GPS ni hors ligne : la position de la maison est utilisée.
 
 - Cartes de la Lune : NASA Scientific Visualization Studio, *CGI Moon Kit* (LRO · LROC WAC, LOLA).
 - Calculs : [astronomy-engine](https://github.com/cosinekitty/astronomy), Don Cross, licence MIT (`vendor/astronomy.js`).
+- Étoiles et constellations : d3-celestial (Olaf Frohn, BSD-3), d'après la base HYG (David Nash, CC BY-SA), réduites par `tools/make_sky.py`.
 - Polices : EB Garamond et Inter (SIL Open Font License), via Fontsource.
 
 *Ursine, le temps venra.*

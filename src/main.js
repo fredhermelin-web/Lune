@@ -3,17 +3,24 @@ import { clock, settings, place, subscribe, locate, refreshNow, animateTo } from
 import { makeObserver, moonAt, moonSky, dayEvents, lunation, phaseName } from './astro.js';
 import { time, longDate, monthYear, num } from './format.js';
 import { MoonRenderer } from './moon-renderer.js';
-import { initStarfield } from './starfield.js';
+import { loadSky, sky, zenith } from './sky.js';
+import { initSkyRenderer } from './sky-renderer.js';
 import { initTimeline } from './timeline.js';
 import { initCurve } from './curve.js';
 import { attachScrub } from './scrub.js';
 import { initSheet, renderEphemeris, renderSettings } from './panels.js';
+import { ursa, nocturlabeSvg, ursaSheet } from './nocturlabe.js';
+import { fullMoonOn, sealSvg, secretPage } from './secrets.js';
+import { makeThought } from './thoughts.js';
+import { playRitual } from './ritual.js';
 
 const $ = (id) => document.getElementById(id);
+const DAY = 86400000;
 
-initStarfield($('stars'), $('twinkles'));
+// ---------- le ciel et la Lune ----------
+const skyR = initSkyRenderer($('sky'), $('twinkles'));
+const skyReady = loadSky().catch((e) => console.error('Catalogue', e));
 
-// ---------- la Lune ----------
 const stage = $('stage');
 let renderer = null;
 try {
@@ -25,25 +32,39 @@ try {
 }
 
 function sizeStage() {
-  const s = Math.round(Math.min(window.innerWidth * 0.9, 430, Math.max(250, window.innerHeight * 0.4)));
+  // la Lune prend toute la place disponible, en gardant la courbe du cycle visible
+  const free = window.innerHeight - 556;
+  const s = Math.round(Math.max(240, Math.min(window.innerWidth * 0.88, 430, free)));
   stage.style.width = stage.style.height = s + 'px';
   renderer?.resize(s);
+  drawSky();
 }
-sizeStage();
-window.addEventListener('resize', sizeStage);
 
 const timeline = initTimeline($('strip'), $('strip-track'));
 const curve = initCurve($('cycle'), $('curve'));
-attachScrub(stage, () => 26, { maxFling: 8 });   // glisser sur la Lune : 26 px par jour, le cycle défile sous le doigt
+attachScrub(stage, () => 26, { maxFling: 8 });   // glisser sur la Lune : le cycle défile sous le doigt
 
 // ---------- panneaux ----------
-let last = null;
+let last = null, lastUrsa = null, lastFull = null;
 const sheet = initSheet($('sheet'), $('sheet-grip'), { onOpen: () => last && renderEphemeris($('sheet-body'), last) });
 const settingsSheet = initSheet($('settings'), $('settings-grip'), { onOpen: () => renderSettings($('settings-body'), () => render(new Set(['settings']))) });
+const ursaPanel = initSheet($('ursa'), $('ursa-grip'), { onOpen: () => openUrsa() });
+const secretPanel = initSheet($('secret'), $('secret-grip'), { onOpen: () => lastFull && secretPage($('secret-body'), lastFull) });
 $('more-btn').addEventListener('click', () => sheet.open());
 $('settings-btn').addEventListener('click', () => settingsSheet.open());
 $('place-btn').addEventListener('click', () => settingsSheet.open());
 $('today-btn').addEventListener('click', () => animateTo(0, 600));
+$('noct-btn').addEventListener('click', (e) => { e.stopPropagation(); ursaPanel.open(); });
+$('noct-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('seal-btn').addEventListener('click', (e) => { e.stopPropagation(); secretPanel.open(); });
+$('seal-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('seal-btn').innerHTML = sealSvg();
+
+function openUrsa() {
+  if (!sky.ready) return;
+  const date = clock.date;
+  ursaSheet($('ursa-body'), ursa(date, obs, place), date, place.source === 'gps' ? 'l’endroit où tu te trouves' : place.name);
+}
 
 // ---------- onglets ----------
 document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
@@ -53,7 +74,16 @@ document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () 
 
 // ---------- rendu ----------
 let obs = makeObserver(place);
-let eventsKey = '', events = null;
+let eventsKey = '', events = null, moonNow = null, zen = null;
+let touched = false;
+document.addEventListener('pointerdown', () => { touched = true; }, { once: true, capture: true });
+
+function drawSky() {
+  if (!moonNow) return;
+  const r = stage.getBoundingClientRect();
+  skyR.draw(moonNow.basis, [r.left + r.width / 2, r.top + r.height / 2], zen);
+}
+$('view-moon').addEventListener('scroll', drawSky, { passive: true });
 
 function render(reasons) {
   if (reasons.has('location')) {
@@ -63,12 +93,16 @@ function render(reasons) {
       ? `Ici · ${num(place.distanceFromHome, 0)} km de la maison` : place.name;
     if (settingsSheet.isOpen) renderSettings($('settings-body'), () => render(new Set(['settings'])));
   }
-  if (reasons.has('day') && settings.haptics && !reasons.has('tick')) navigator.vibrate?.(4);
+  if (reasons.has('day') && settings.haptics && !reasons.has('tick')
+    && (navigator.userActivation ? navigator.userActivation.hasBeenActive : touched)) navigator.vibrate?.(4);
 
   const date = clock.date;
   const moon = moonAt(date, obs, settings.orientation);
+  moonNow = moon;
+  zen = zenith(date, obs);
   renderer?.set(moon, { earthshine: settings.earthshine });
   $('halo').style.opacity = (0.15 + 0.85 * moon.fraction).toFixed(3);
+  drawSky();
 
   timeline.update();
   curve.update();
@@ -92,18 +126,40 @@ function render(reasons) {
     $('moonset').textContent = time(events.moon.set);
     $('transit').innerHTML = events.transit
       ? `${time(events.transit.date)}<small>${num(events.transit.altitude, 0)}°</small>` : '—';
+    lastFull = fullMoonOn(date);
+    $('seal-btn').hidden = !lastFull;
+  }
+
+  // le nocturlabe tourne avec le temps
+  if (sky.ready) {
+    const u = ursa(date, obs, place);
+    lastUrsa = u;
+    $('noct-btn').innerHTML = nocturlabeSvg(u, date, false);
   }
 
   const moving = reasons.has('scrub') || reasons.has('anim');
   if (!moving || !last) {
     last = { moon, sky: moonSky(date, obs), phase, luna, events, date };
     if (sheet.isOpen) renderEphemeris($('sheet-body'), last);
+    if (ursaPanel.isOpen) openUrsa();
   }
 }
 
 subscribe(render);
 window.lune = { clock, animateTo };   // accès de mise au point depuis la console
+sizeStage();
+window.addEventListener('resize', sizeStage);
 render(new Set(['location', 'settle']));
+
+// ---------- l'ouverture ----------
+skyReady.then(() => {
+  render(new Set(['settle']));
+  const date = clock.date;
+  const thought = makeThought({ date, moon: moonNow, ursa: lastUrsa, luna: last?.luna, place });
+  const lon = moonSky(date, obs).eclipticLon;
+  const r = stage.getBoundingClientRect();
+  playRitual({ moonLon: lon, thought, center: [r.left + r.width / 2, r.top + r.height / 2], onReveal: () => renderer?.reveal() });
+});
 
 // ---------- temps réel et position ----------
 locate();

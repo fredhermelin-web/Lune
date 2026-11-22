@@ -56,6 +56,12 @@ function geometry(t, obs, mode, geoMoon, geoSun) {
     sun: toBody(sunDir),
     earth: toBody(earthDir),
     view: viewBody,
+    // repère EQJ de la vue, pour placer le vrai ciel derrière la Lune
+    basis: {
+      fwd: [-zView.x, -zView.y, -zView.z],
+      up: [up.x, up.y, up.z],
+      right: [right.x, right.y, right.z],
+    },
     // libration totale : point sub-observateur en coordonnées sélénographiques
     librationLon: Math.atan2(viewBody[1], viewBody[0]) * 180 / Math.PI,
     librationLat: Math.asin(viewBody[2]) * 180 / Math.PI,

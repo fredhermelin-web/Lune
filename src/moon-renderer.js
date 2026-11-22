@@ -187,7 +187,7 @@ export class MoonRenderer {
     this.upload(this.texColor, 0, c1, false);
     this.upload(this.texRelief, 1, r1, true);
     this.ready = true;
-    this.fadeIn();
+    if (this.revealRequested) this.fadeIn();
     if (this.maxTex >= 4096) {
       const [c4, r4] = await Promise.all([loadBitmap(base + 'moon_color_4k.jpg'), loadBitmap(base + 'moon_relief_4k.webp', true)]);
       this.upload(this.texColor, 0, c4, false);
@@ -196,7 +196,15 @@ export class MoonRenderer {
     }
   }
 
+  /** Fait apparaître la Lune (dès que les textures sont prêtes). */
+  reveal() {
+    this.revealRequested = true;
+    if (this.ready) this.fadeIn();
+  }
+
   fadeIn() {
+    if (this.fading) return;
+    this.fading = true;
     const t0 = performance.now();
     const step = (now) => {
       const k = Math.min(1, (now - t0) / 1800);
