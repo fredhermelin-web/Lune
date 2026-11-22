@@ -27,6 +27,7 @@ uniform float uPhaseAngle;
 uniform float uEarthshine;
 uniform float uReliefK;
 uniform float uFade;
+uniform float uStyle;     // 0 : photographie · 1 : lavis de Galilée
 
 const float PI = 3.14159265359;
 const float R = 1737400.0;
@@ -38,6 +39,40 @@ vec2 uvOf(vec3 n) {
   return vec2(0.5 + atan(n.y, n.x) / (2.0 * PI), 0.5 - asin(clamp(n.z, -1.0, 1.0)) / PI);
 }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+float fbm(vec2 p) {
+  float s = 0.0, a = 0.5;
+  for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + 7.1; a *= 0.5; }
+  return s;
+}
+
+// Lavis à l'encre sépia, à la manière des dessins de Galilée (1609) :
+// le papier pour la lumière, le lavis pour l'ombre, la plume pour le contour.
+vec3 lavis(float L, vec2 p, float r, float aa, vec2 uv) {
+  vec3 paper = vec3(0.87, 0.81, 0.69) * (0.94 + 0.08 * fbm(gl_FragCoord.xy * 0.09));
+  vec3 ink = vec3(0.33, 0.22, 0.13);
+  float lit = smoothstep(0.035, 0.16, L);
+  // ombre : un lavis profond, inégal, comme posé au pinceau
+  float dark = 0.80 + 0.22 * (fbm(p * 3.2 + 3.0) - 0.5);
+  // lumière : les mers reçoivent un lavis léger, en quelques valeurs
+  float tone = clamp((0.90 - L) * 1.35, 0.0, 1.0);
+  tone = mix(tone, floor(tone * 4.0 + 0.5) / 4.0, 0.55);
+  float d = mix(dark, tone * 0.78, lit);
+  // le pigment s'accumule au bord du lavis, le long de la ligne d'ombre
+  float band = smoothstep(0.02, 0.07, L) * (1.0 - smoothstep(0.07, 0.24, L));
+  d += 0.32 * band;
+  // granulation du pigment, attachée au sol lunaire
+  d *= 0.82 + 0.36 * fbm(uv * vec2(180.0, 90.0));
+  vec3 col = mix(paper, ink, clamp(d, 0.0, 0.95));
+  // un trait de plume pour le contour, légèrement tremblé
+  float wob = 0.004 * sin(atan(p.y, p.x) * 7.0) + 0.002 * sin(atan(p.y, p.x) * 23.0);
+  float ring = 1.0 - smoothstep(0.0, aa * 1.6, abs(r - 0.992 - wob));
+  return mix(col, ink * 0.75, ring * 0.85);
+}
 
 void main() {
   vec2 p = vPos / uRadius;
@@ -108,6 +143,10 @@ void main() {
   col = mix(vec3(lum), col, 0.6);
   col = 1.0 - exp(-col * 3.3);              // compression douce des hautes lumières
   col = pow(col, vec3(1.0 / 2.2));
+  if (uStyle > 0.001) {
+    float L = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    col = mix(col, lavis(L, p, r, aa, uv), uStyle);
+  }
   col += (hash(gl_FragCoord.xy) - 0.5) / 255.0;
 
   float alpha = edge * uFade;
@@ -152,7 +191,7 @@ export class MoonRenderer {
 
     this.u = {};
     for (const name of ['uColor', 'uRelief', 'uReliefSize', 'uViewToBody', 'uSun', 'uView', 'uEarth', 'uRadius',
-      'uPx', 'uPhaseAngle', 'uEarthshine', 'uReliefK', 'uFade']) this.u[name] = gl.getUniformLocation(prog, name);
+      'uPx', 'uPhaseAngle', 'uEarthshine', 'uReliefK', 'uFade', 'uStyle']) this.u[name] = gl.getUniformLocation(prog, name);
     gl.uniform1i(this.u.uColor, 0);
     gl.uniform1i(this.u.uRelief, 1);
 
@@ -161,6 +200,7 @@ export class MoonRenderer {
     this.texRelief = gl.createTexture();
     this.ready = false;
     this.fade = 0;
+    this.style = 0;
     this.state = null;
     this.maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
   }
@@ -194,6 +234,20 @@ export class MoonRenderer {
       this.upload(this.texRelief, 1, r4, true);
       this.draw();
     }
+  }
+
+  /** Glisse doucement de la photographie au lavis (1) ou inversement (0). */
+  setStyle(target, animate = true) {
+    if (!animate) { this.style = target; this.draw(); return; }
+    cancelAnimationFrame(this.styleAnim);
+    const from = this.style, t0 = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / 1400);
+      this.style = from + (target - from) * (k * k * (3 - 2 * k));
+      this.draw();
+      if (k < 1) this.styleAnim = requestAnimationFrame(step);
+    };
+    this.styleAnim = requestAnimationFrame(step);
   }
 
   /** Fait apparaître la Lune (dès que les textures sont prêtes). */
@@ -260,6 +314,7 @@ export class MoonRenderer {
     gl.uniform1f(u.uEarthshine, es);
     gl.uniform1f(u.uReliefK, 2.2);
     gl.uniform1f(u.uFade, this.fade);
+    gl.uniform1f(u.uStyle, this.style);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }

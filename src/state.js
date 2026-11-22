@@ -23,6 +23,7 @@ export const settings = load('lc.settings', {
   marginalia: true,        // annotations à la plume et tracés du savant
   latin: true,             // noms latins des constellations
   candle: true,            // flamme de bougie
+  galileo: false,          // la Lune au lavis, comme Galilée
   world: 'observatoire',
 });
 export const home = load('lc.home', HOME_DEFAULT);

@@ -116,6 +116,8 @@ body.in-ritual :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .ta
 .margin .note .pin { fill: #e8c98e; }
 .margin .note.is-mirror text { transform: scaleX(-1); transform-box: fill-box; transform-origin: center; }
 
+body.galileo .halo { opacity: .12 !important; }
+
 /* ---------- la flamme de bougie ---------- */
 .candle { position: fixed; z-index: 0; right: -30vmax; bottom: -30vmax; width: 80vmax; height: 80vmax; pointer-events: none;
   background: radial-gradient(circle, rgba(255, 176, 92, .13) 0%, rgba(255, 150, 70, .05) 35%, transparent 62%);

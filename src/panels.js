@@ -94,6 +94,7 @@ export function renderSettings(body, onChange) {
       <div class="seg"><button data-orient="sky" aria-pressed="${settings.orientation === 'sky'}">Mon ciel</button><button data-orient="north" aria-pressed="${settings.orientation === 'north'}">Nord</button></div></div>
     ${sw('earthshine', 'Lumière cendrée', 'La Terre éclaire la face nocturne')}
     <h4>Le cabinet du savant</h4>
+    ${sw('galileo', 'La Lune de Galilée', 'Au lavis de sépia — ou appui long sur la Lune')}
     ${sw('marginalia', 'Annotations à la plume', 'Notes et tracés du savant autour de la Lune')}
     ${sw('latin', 'Noms latins', 'Sous les constellations, comme sur les atlas anciens')}
     ${sw('candle', 'Flamme de bougie', 'Une lueur chaude au coin du carnet')}

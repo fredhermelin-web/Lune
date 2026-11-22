@@ -100,7 +100,7 @@ export function playRitual({ moonLon = 0, onReveal, thought, center }) {
   });
 }
 
-function showThought(thought, fast) {
+export function showThought(thought, fast) {
   if (!thought) return;
   const t = document.createElement('div');
   t.className = 'thought';
@@ -108,6 +108,6 @@ function showThought(thought, fast) {
   document.body.appendChild(t);
   setTimeout(() => t.classList.add('is-in'), fast ? 50 : 150);
   const leave = () => { t.classList.add('is-out'); setTimeout(() => t.remove(), 1200); };
-  const timer = setTimeout(leave, 6500);
+  const timer = setTimeout(leave, thought.duration || 6500);
   t.addEventListener('pointerdown', () => { clearTimeout(timer); leave(); });
 }

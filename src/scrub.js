@@ -2,19 +2,28 @@
 import { clock, setOffset, stopAnimation, fling } from './state.js';
 
 /** pxPerDay : nombre de pixels pour un jour (fonction, car la largeur peut changer). */
-export function attachScrub(el, pxPerDay, { onTap, maxFling = 12 } = {}) {
-  let id = null, lastX = 0, startX = 0, startY = 0, moved = false, samples = [];
+export function attachScrub(el, pxPerDay, { onTap, onLongPress, maxFling = 12 } = {}) {
+  let id = null, lastX = 0, startX = 0, startY = 0, moved = false, samples = [], pressTimer = 0, pressed = false;
 
   el.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
-    id = e.pointerId; lastX = startX = e.clientX; startY = e.clientY; moved = false;
+    id = e.pointerId; lastX = startX = e.clientX; startY = e.clientY; moved = false; pressed = false;
     samples = [{ x: e.clientX, t: e.timeStamp }];
     stopAnimation();
+    if (onLongPress) {
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(() => { if (id !== null && !moved) { pressed = true; onLongPress(); } }, 600);
+    }
   });
+  el.addEventListener('contextmenu', (e) => { if (onLongPress) e.preventDefault(); });
   el.addEventListener('pointermove', (e) => {
     if (e.pointerId !== id) return;
     if (!moved) {
-      if (Math.abs(e.clientX - startX) < 6) return;
+      if (Math.abs(e.clientX - startX) < 6) {
+        if (Math.abs(e.clientY - startY) > 8) clearTimeout(pressTimer);
+        return;
+      }
+      clearTimeout(pressTimer);
       moved = true;
       try { el.setPointerCapture(id); } catch { /* ok */ }
       el.classList.add('is-dragging');
@@ -27,7 +36,9 @@ export function attachScrub(el, pxPerDay, { onTap, maxFling = 12 } = {}) {
   const end = (e) => {
     if (e.pointerId !== id) return;
     id = null;
+    clearTimeout(pressTimer);
     el.classList.remove('is-dragging');
+    if (pressed) return;
     if (!moved) {
       if (e.type === 'pointerup' && Math.hypot(e.clientX - startX, e.clientY - startY) < 8 && onTap) onTap(e);
       if (clock.offset !== Math.round(clock.offset)) fling(0);

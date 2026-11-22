@@ -12,7 +12,8 @@ import { initSheet, renderEphemeris, renderSettings } from './panels.js';
 import { ursa, nocturlabeSvg, ursaSheet } from './nocturlabe.js';
 import { fullMoonOn, sealSvg, secretPage } from './secrets.js';
 import { makeThought } from './thoughts.js';
-import { playRitual } from './ritual.js';
+import { playRitual, showThought } from './ritual.js';
+import { saveSettings } from './state.js';
 import { initMarginalia } from './marginalia.js';
 
 const $ = (id) => document.getElementById(id);
@@ -62,7 +63,24 @@ function updateMargin() {
 
 const timeline = initTimeline($('strip'), $('strip-track'));
 const curve = initCurve($('cycle'), $('curve'));
-attachScrub(stage, () => 26, { maxFling: 8 });   // glisser sur la Lune : le cycle défile sous le doigt
+// glisser sur la Lune : le cycle défile sous le doigt ; appui long : la Lune de Galilée
+attachScrub(stage, () => 26, { maxFling: 8, onLongPress: () => toggleGalileo() });
+
+function applyStyle(animate) {
+  renderer?.setStyle(settings.galileo ? 1 : 0, animate);
+  document.body.classList.toggle('galileo', !!settings.galileo);
+}
+function toggleGalileo() {
+  settings.galileo = !settings.galileo;
+  saveSettings();
+  applyStyle(true);
+  navigator.vibrate?.(12);
+  document.querySelectorAll('.thought').forEach((t) => t.remove());
+  showThought(settings.galileo
+    ? { text: 'La Lune de Galilée, au lavis de sépia, comme sur ses feuillets de 1609.', author: 'appui long pour revenir', duration: 4200 }
+    : { text: 'Retour à la lunette moderne.', duration: 2600 }, true);
+}
+applyStyle(false);
 
 // ---------- panneaux ----------
 let last = null, lastUrsa = null, lastFull = null;
@@ -163,6 +181,7 @@ function render(reasons) {
   if (!moving) updateMargin();
   if (reasons.has('settings')) {
     skyR.configure({ latin: settings.latin });
+    if ((renderer?.style ?? 0) !== (settings.galileo ? 1 : 0)) applyStyle(true);
     document.body.classList.toggle('no-candle', !settings.candle);
   }
   if (!moving || !last) {
@@ -173,7 +192,7 @@ function render(reasons) {
 }
 
 subscribe(render);
-window.lune = { clock, animateTo };   // accès de mise au point depuis la console
+window.lune = { clock, animateTo, toggleGalileo: () => toggleGalileo() };   // accès de mise au point depuis la console
 sizeStage();
 window.addEventListener('resize', sizeStage);
 render(new Set(['location', 'settle']));
