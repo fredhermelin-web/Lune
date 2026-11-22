@@ -7,6 +7,19 @@ export const dropcap = (t) => `<span class="dc">${t.charAt(0)}</span>${t.slice(1
 export const runhead = (latin) => `<div class="runhead">${latin}</div>`;
 export const folio = (date) => `<div class="folio">❧ &nbsp;f. ${roman(dayOfYear(date), true)} · anno ${roman(date.getFullYear())}&nbsp; ❧</div>`;
 import { QUARTER_NAMES } from './astro.js';
+import { ALMANAC, MONTHS, upcoming } from './almanac.js';
+
+function almanacHtml(date) {
+  const soon = upcoming(date, 4).map((a) => `<div class="row alm"><dt>${a.d} ${MONTHS[a.m - 1]}<small>${a.y}</small></dt>
+    <dd class="soft">${a.text}<small>${a.days === 0 ? 'aujourd’hui — il y a ' + a.years + ' ans' : 'dans ' + a.days + ' jour' + (a.days > 1 ? 's' : '') + ' · ' + a.years + ' ans'}</small></dd></div>`).join('');
+  let year = '', month = 0;
+  for (const [m, d, y, text] of ALMANAC) {
+    if (m !== month) { month = m; year += `<p class="alm-month">${MONTHS[m - 1]}</p>`; }
+    year += `<p class="alm-line"><b>${d}</b> <i>${y}</i> — ${text}</p>`;
+  }
+  return `<h4>Almanach des savants</h4><dl class="rows">${soon}</dl>
+    <details class="alm-year"><summary>Toute l’année</summary>${year}</details>`;
+}
 
 const scrim = document.getElementById('scrim');
 let openSheet = null;
@@ -71,6 +84,7 @@ export function renderEphemeris(body, d) {
     </dl>
     <h4>Prochaines phases</h4>
     <dl class="rows">${next}</dl>
+    ${almanacHtml(date)}
     <p class="motto-small">Le temps venra</p>
     ${folio(date)}`;
 }

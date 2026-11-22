@@ -161,6 +161,17 @@ body.no-candle .candle { display: none; }
 .book .credit { color: #8d7a5c; }
 .book .folio { text-align: center; font-family: var(--serif); font-style: italic; font-size: 13px; color: rgba(216, 189, 134, .6);
   margin: 18px 0 4px; letter-spacing: .05em; }
+.book .alm dt { font-size: 16px; white-space: nowrap; }
+.book .alm dt small { display: block; font-family: var(--serif); font-style: italic; color: #c8603f; font-size: 14px; }
+.sheet.book .alm dd.soft { font-size: 15.5px; line-height: 1.35; max-width: 70%; }
+.alm-year { margin-top: 12px; }
+.alm-year summary { cursor: pointer; font-family: var(--serif); font-style: italic; font-size: 16px; color: #d8bd86; padding: 8px 0; list-style: none; }
+.alm-year summary::before { content: '☞ '; }
+.alm-year[open] summary::before { content: '☟ '; }
+.alm-month { font-family: var(--serif); font-variant: small-caps; letter-spacing: .14em; color: #c8603f; font-size: 15px; margin: 14px 0 4px; }
+.alm-line { font-family: var(--serif); font-size: 15.5px; line-height: 1.45; color: #e6d9bc; margin: 3px 0; }
+.alm-line b { color: #f1e6cc; font-weight: 500; }
+.alm-line i { color: #b9a37f; }
 .book .noct .face { fill: #0e0b08; }
 .book .noct .rim { fill: #15100b; }
 .seal-btn { position: absolute; z-index: 2; right: -2px; bottom: 0; width: 54px; height: 54px;
