@@ -108,10 +108,11 @@ body.in-ritual :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .ta
 .margin .constr .sol-dot { fill: rgba(240, 214, 160, .9); stroke: none; }
 .margin .constr .deg { fill: rgba(216, 189, 134, .62); stroke: none; font: italic 11px var(--serif); text-anchor: middle; }
 .margin .note { pointer-events: auto; cursor: pointer; }
-.margin .note text { fill: #cfab72; font-family: var(--serif); font-style: italic; transition: opacity .4s; }
-.margin .note .l1 { font-size: 14.5px; }
-.margin .note .l2 { font-size: 11px; fill: rgba(207, 171, 114, .72); }
-.margin .note.latin .l1 { font-style: normal; letter-spacing: .04em; font-variant: small-caps; font-size: 15px; }
+.margin .note text { fill: #e2c088; font-family: var(--serif); font-style: italic; transition: opacity .4s;
+  paint-order: stroke; stroke: rgba(3, 5, 9, .9); stroke-width: 3.5px; stroke-linejoin: round; }
+.margin .note .l1 { font-size: 16px; font-weight: 500; }
+.margin .note .l2 { font-size: 12.5px; fill: #d2b386; }
+.margin .note.latin .l1 { font-style: normal; letter-spacing: .02em; font-size: 16.5px; }
 .margin .note .quill { fill: none; stroke: rgba(207, 171, 114, .7); stroke-width: .8; stroke-linecap: round; }
 .margin .note .pin { fill: #e8c98e; }
 .margin .note.is-mirror text { transform: scaleX(-1); transform-box: fill-box; transform-origin: center; }

@@ -125,7 +125,7 @@ export function initMarginalia(stage) {
       const note = el('g', { class: 'note' + (n.latin ? ' latin' : '') }, svg);
       const t1 = el('text', { x: c.x, y: c.y, 'text-anchor': c.anchor, class: 'l1' }, note);
       t1.textContent = n.lines[0];
-      const t2 = el('text', { x: c.x, y: c.y + 13, 'text-anchor': c.anchor, class: 'l2' }, note);
+      const t2 = el('text', { x: c.x, y: c.y + 15, 'text-anchor': c.anchor, class: 'l2' }, note);
       t2.textContent = n.lines[1];
       // flèche à main levée vers la cible
       const [tx, ty] = scr(n.target[0], n.target[1]);
