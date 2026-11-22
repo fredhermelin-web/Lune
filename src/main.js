@@ -15,6 +15,7 @@ import { makeThought } from './thoughts.js';
 import { playRitual, showThought } from './ritual.js';
 import { saveSettings } from './state.js';
 import { initMarginalia } from './marginalia.js';
+import { renderSun } from './sun.js';
 
 const $ = (id) => document.getElementById(id);
 const DAY = 86400000;
@@ -105,10 +106,31 @@ function openUrsa() {
 }
 
 // ---------- onglets ----------
+let activeView = 'view-moon';
 document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
+  activeView = t.dataset.view;
+  document.body.dataset.view = activeView;
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('is-active', x === t));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('is-active', v.id === t.dataset.view));
+  if (activeView === 'view-sun') { sunKey = ''; drawSun(); }
 }));
+
+// ---------- le Soleil ----------
+let sunKey = '';
+function drawSun() {
+  if (activeView !== 'view-sun') return;
+  const date = clock.date;
+  const key = `${Math.floor(date.getTime() / 60000)}|${place.lat}|${place.lon}`;
+  if (key === sunKey) return;
+  sunKey = key;
+  const root = $('view-sun'), scroll = root.scrollTop;
+  renderSun(root, date, obs, place.source === 'gps' ? 'position GPS' : place.name);
+  root.scrollTop = scroll;
+}
+$('view-sun').addEventListener('click', (e) => {
+  const b = e.target.closest('.sun-arrow');
+  if (b) animateTo(Math.round(clock.offset) + Number(b.dataset.step), 300);
+});
 
 // ---------- rendu ----------
 let obs = makeObserver(place);
@@ -176,6 +198,7 @@ function render(reasons) {
   }
 
   const moving = reasons.has('scrub') || reasons.has('anim');
+  if (!moving) drawSun();
   // l'encre sèche quand le temps s'arrête : les annotations reviennent à l'arrêt
   stage.classList.toggle('is-moving', moving);
   if (!moving) updateMargin();

@@ -119,6 +119,56 @@ body.in-ritual :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .ta
 
 body.galileo .halo { opacity: .12 !important; }
 
+/* ---------- le Soleil ---------- */
+body[data-view="view-sun"] .sky.is-awake, body[data-view="view-sky"] .sky.is-awake { opacity: .3; }
+.sun-page { max-width: 520px; margin: 0 auto; padding: 6px 16px 20px; }
+.sun-page .runhead { text-align: center; font-family: var(--serif); font-variant: small-caps; letter-spacing: .32em; font-size: 13px;
+  color: rgba(216, 189, 134, .75); margin: 8px 0 4px; }
+.sun-nav { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 10px; }
+.sun-arrow { width: 44px; height: 44px; font-family: var(--serif); font-size: 30px; color: var(--gold); line-height: 1; }
+.sun-date { text-align: center; font-family: var(--serif); font-size: 22px; color: var(--moon); }
+.sun-date small { display: block; font-family: var(--sans); font-size: 12px; color: var(--silver); margin-top: 2px; letter-spacing: .03em; }
+.sun-graph { margin: 0 0 4px; }
+.sun-svg { width: 100%; height: 178px; display: block; overflow: visible; }
+.sun-svg .earth { fill: rgba(3, 4, 7, .55); }
+.sun-svg .hz { stroke: rgba(216, 189, 134, .55); stroke-width: 1; stroke-dasharray: 3 3; }
+.sun-svg .course { fill: none; stroke: #f0cf8e; stroke-width: 1.8; filter: drop-shadow(0 0 4px rgba(255, 200, 120, .45)); }
+.sun-svg .tk { stroke: rgba(216, 189, 134, .5); }
+.sun-svg .hr { fill: rgba(216, 189, 134, .8); font: 12px var(--serif); text-anchor: middle; }
+.sun-svg .rs { fill: #f0cf8e; }
+.sun-svg .now { stroke: rgba(240, 230, 210, .35); stroke-width: 1; }
+.sun-svg .glow { fill: url(#sunglow); }
+.sun-svg .sun { fill: #ffe2a3; stroke: #fff3d6; stroke-width: .8; }
+.sun-svg .sun.under { fill: #6d5636; stroke: #c9a46b; }
+.sun-rs { margin-top: 10px; }
+.sun-rs .rs-time small { font-size: 11px; color: var(--silver); margin-left: 4px; }
+.sun-len { text-align: center; font-family: var(--serif); font-size: 18px; color: var(--accent); margin: 14px 0 4px; }
+.sun-len b { font-size: 26px; font-weight: 400; color: var(--moon); }
+.sun-len small { display: block; font-family: var(--sans); font-size: 12px; color: var(--silver); margin-top: 2px; }
+.hours { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 6px; }
+.hr { border-radius: 14px; padding: 12px 12px 10px; background: rgba(10, 13, 19, .7); border: 1px solid var(--line); position: relative; overflow: hidden; }
+.hr::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.hr.gold::before { background: linear-gradient(180deg, #f2c879, #b97a35); }
+.hr.blue::before { background: linear-gradient(180deg, #7fa3d9, #34558f); }
+.hr-t { font-family: var(--serif); font-size: 17px; }
+.hr.gold .hr-t { color: #ebc57f; }
+.hr.blue .hr-t { color: #9fbbe4; }
+.hr-v { font-size: 14px; line-height: 1.55; margin-top: 4px; color: var(--moon); font-weight: 400; }
+.hr p { margin: 6px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--silver); }
+.sun-page h4 { font-family: var(--serif); font-variant: small-caps; letter-spacing: .14em; font-size: 15px; font-weight: 400;
+  color: #c8603f; margin: 22px 0 4px; }
+.sun-page h4::before { content: '❧ '; color: rgba(216, 189, 134, .8); }
+.sun-page .row dt { font-family: var(--serif); font-size: 16px; color: var(--silver); }
+.sun-page .row dd small i { color: var(--gold); }
+.year-svg { width: 100%; height: 96px; display: block; overflow: visible; }
+.year-svg .yl { fill: none; stroke: rgba(240, 207, 142, .8); stroke-width: 1.4; }
+.year-svg .now { stroke: rgba(240, 230, 210, .3); }
+.year-svg .sun { fill: #ffe2a3; }
+.year-svg .mo { fill: rgba(216, 189, 134, .6); font: 11px var(--serif); text-anchor: middle; }
+.sun-season { font-family: var(--serif); font-size: 16px; line-height: 1.5; color: #e6d9bc; margin: 8px 0 0; }
+.sun-season b { color: #ebc57f; font-weight: 500; }
+.sun-page .folio { text-align: center; font-family: var(--serif); font-style: italic; font-size: 13px; color: rgba(216, 189, 134, .6); margin: 18px 0 4px; }
+
 /* ---------- la flamme de bougie ---------- */
 .candle { position: fixed; z-index: 0; right: -30vmax; bottom: -30vmax; width: 80vmax; height: 80vmax; pointer-events: none;
   background: radial-gradient(circle, rgba(255, 176, 92, .13) 0%, rgba(255, 150, 70, .05) 35%, transparent 62%);
