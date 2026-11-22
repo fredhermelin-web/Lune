@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#04060a">
+  <meta name="color-scheme" content="dark">
+  <title>Lune &amp; Ciel</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="preload" href="textures/moon_color_1k.jpg" as="fetch" crossorigin>
+  <link rel="preload" href="textures/moon_relief_1k.webp" as="fetch" crossorigin>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body data-world="observatoire">
+  <div class="sky" aria-hidden="true">
+    <canvas id="stars"></canvas>
+    <div class="twinkles" id="twinkles"></div>
+  </div>
+
+  <main class="app">
+    <!-- ======================= LUNE ======================= -->
+    <section class="view view-moon is-active" id="view-moon" aria-label="La Lune">
+      <header class="topbar">
+        <button class="place" id="place-btn" aria-label="Lieu d'observation">
+          <svg viewBox="0 0 16 16" class="ico"><path d="M8 14.5s-4.5-4.3-4.5-7.7a4.5 4.5 0 0 1 9 0c0 3.4-4.5 7.7-4.5 7.7Z"/><circle cx="8" cy="6.8" r="1.6"/></svg>
+          <span id="place-name">Rilly-sur-Loire</span>
+        </button>
+        <button class="icon-btn" id="settings-btn" aria-label="Réglages">
+          <svg viewBox="0 0 20 20" class="ico"><circle cx="10" cy="10" r="2.6"/><path d="M10 1.8v2.4M10 15.8v2.4M1.8 10h2.4M15.8 10h2.4M4.2 4.2l1.7 1.7M14.1 14.1l1.7 1.7M4.2 15.8l1.7-1.7M14.1 5.9l1.7-1.7"/></svg>
+        </button>
+      </header>
+
+      <div class="month" id="month-label"></div>
+      <div class="strip" id="strip" aria-label="Calendrier — glisser pour changer de jour">
+        <div class="strip-track" id="strip-track"></div>
+        <div class="strip-focus" aria-hidden="true"></div>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="halo" id="halo"></div>
+        <canvas id="moon" aria-label="La Lune"></canvas>
+        <button class="today" id="today-btn" hidden>Aujourd'hui</button>
+      </div>
+
+      <div class="phase">
+        <h1 class="phase-name" id="phase-name">&nbsp;</h1>
+        <p class="phase-sub"><span id="phase-pct"></span><span class="dot">·</span><span id="phase-age"></span></p>
+        <p class="phase-when" id="phase-when"></p>
+      </div>
+
+      <div class="riseset">
+        <div class="rs"><svg viewBox="0 0 32 20" class="ico rs-ico"><path d="M2 17h28"/><path d="M16 13V3M12 7l4-4 4 4"/><path d="M8.5 17a7.5 7.5 0 0 1 3-6"/></svg><span class="rs-label">Lever</span><span class="rs-time" id="moonrise">—</span></div>
+        <div class="rs"><svg viewBox="0 0 32 20" class="ico rs-ico"><path d="M2 17h28"/><circle cx="16" cy="9" r="1.2" class="fill"/><path d="M9 17a7 7 0 0 1 14 0" stroke-dasharray="1.5 2.5"/></svg><span class="rs-label">Au plus haut</span><span class="rs-time" id="transit">—</span></div>
+        <div class="rs"><svg viewBox="0 0 32 20" class="ico rs-ico"><path d="M2 17h28"/><path d="M16 3v10M12 9l4 4 4-4"/><path d="M23.5 17a7.5 7.5 0 0 0-3-6"/></svg><span class="rs-label">Coucher</span><span class="rs-time" id="moonset">—</span></div>
+      </div>
+
+      <div class="cycle" id="cycle" aria-label="Cycle lunaire — glisser pour naviguer">
+        <svg id="curve" class="curve" preserveAspectRatio="none"></svg>
+      </div>
+
+      <button class="more" id="more-btn" aria-expanded="false">
+        <span>Éphémérides</span>
+        <svg viewBox="0 0 16 10" class="ico"><path d="M2 8l6-6 6 6"/></svg>
+      </button>
+    </section>
+
+    <!-- ======================= SOLEIL ======================= -->
+    <section class="view view-sun" id="view-sun" aria-label="Le Soleil">
+      <div class="soon">
+        <div class="soon-mark">☉</div>
+        <h2>Le Soleil</h2>
+        <p>Lever, coucher, durée du jour, heures dorées et heures bleues.</p>
+        <p class="motto">« Le temps venra »</p>
+      </div>
+    </section>
+
+    <!-- ======================= CIEL ======================= -->
+    <section class="view view-sky" id="view-sky" aria-label="Le ciel">
+      <div class="soon">
+        <svg class="soon-ursa" viewBox="0 0 200 110" aria-hidden="true">
+          <path d="M18 30 L52 26 L80 36 L104 46 L118 78 L170 84 L176 50 L104 46" fill="none"/>
+          <g class="fill"><circle cx="18" cy="30" r="2.6"/><circle cx="52" cy="26" r="2.4"/><circle cx="56" cy="20" r="0.9"/><circle cx="80" cy="36" r="2.6"/><circle cx="104" cy="46" r="1.8"/><circle cx="176" cy="50" r="2.8"/><circle cx="170" cy="84" r="2.6"/><circle cx="118" cy="78" r="2.2"/></g>
+        </svg>
+        <h2>La carte du ciel</h2>
+        <p>La Grande Ourse au-dessus de ta maison, la boussole, les constellations.</p>
+        <p class="motto">« Ursine, le temps venra »</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Espaces">
+    <button class="tab is-active" data-view="view-moon"><svg viewBox="0 0 20 20" class="ico"><path d="M13.5 3.2A7.2 7.2 0 1 0 16.8 13 5.8 5.8 0 0 1 13.5 3.2Z"/></svg><span>Lune</span></button>
+    <button class="tab" data-view="view-sun"><svg viewBox="0 0 20 20" class="ico"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.5v2.2M10 16.3v2.2M1.5 10h2.2M16.3 10h2.2M4 4l1.6 1.6M14.4 14.4 16 16M4 16l1.6-1.6M14.4 5.6 16 4"/></svg><span>Soleil</span></button>
+    <button class="tab" data-view="view-sky"><svg viewBox="0 0 20 20" class="ico"><path d="M10 2.5l1.6 4.9h5.1l-4.1 3 1.6 4.9-4.2-3-4.2 3 1.6-4.9-4.1-3h5.1Z"/></svg><span>Ciel</span></button>
+  </nav>
+
+  <!-- Éphémérides -->
+  <div class="sheet" id="sheet" aria-hidden="true">
+    <div class="sheet-grip" id="sheet-grip"><span></span></div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+
+  <!-- Réglages -->
+  <div class="sheet" id="settings" aria-hidden="true">
+    <div class="sheet-grip" id="settings-grip"><span></span></div>
+    <div class="sheet-body" id="settings-body"></div>
+  </div>
+  <div class="scrim" id="scrim"></div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
