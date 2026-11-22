@@ -12,10 +12,51 @@ const QUOTES = [
   ['Les cieux racontent la gloire, et le firmament annonce l’ouvrage.', 'Psaume 19'],
 ];
 
+// L'almanach des savants : [mois (1-12), jour, année, texte]
+const ALMANAC = [
+  [1, 4, 1643, 'naissance d’Isaac Newton'],
+  [1, 7, 1610, 'Galilée aperçoit trois petites « étoiles » serrées contre Jupiter — ses lunes'],
+  [1, 8, 1642, 'mort de Galilée à Arcetri, aveugle, les yeux usés par le ciel'],
+  [2, 15, 1564, 'naissance de Galilée à Pise'],
+  [2, 19, 1473, 'naissance de Copernic à Toruń'],
+  [3, 13, 1610, 'parution à Venise du « Sidereus Nuncius », le Messager des étoiles'],
+  [3, 13, 1781, 'William Herschel découvre Uranus'],
+  [3, 25, 1655, 'Huygens découvre Titan, la grande lune de Saturne'],
+  [4, 15, 1452, 'naissance de Léonard à Vinci'],
+  [5, 2, 1519, 'Léonard s’éteint au Clos Lucé, à Amboise'],
+  [5, 24, 1543, 'mort de Copernic, son « De revolutionibus » à peine imprimé'],
+  [6, 22, 1633, 'Galilée abjure devant l’Inquisition'],
+  [7, 20, 1969, 'deux hommes marchent sur la mer de la Tranquillité'],
+  [8, 25, 1609, 'Galilée présente sa lunette au doge de Venise'],
+  [11, 15, 1630, 'mort de Kepler à Ratisbonne'],
+  [11, 30, 1609, 'Galilée commence à dessiner la Lune dans sa lunette'],
+  [12, 27, 1571, 'naissance de Kepler'],
+];
+const AMBOISE = { lat: 47.4125, lon: 0.9826 };
+
+function almanac(date) {
+  const out = [];
+  for (const [m, d, y, text] of ALMANAC) {
+    const t = new Date(date.getFullYear(), m - 1, d);
+    const days = Math.round((t - new Date(date.getFullYear(), date.getMonth(), date.getDate())) / 86400000);
+    if (days === 0) out.push(`Il y a ${date.getFullYear() - y} ans, jour pour jour : ${text}.`);
+    else if (days > 0 && days <= 3) out.push(`Dans ${days} jour${days > 1 ? 's' : ''}, l’anniversaire : ${d} ${['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'][m - 1]} ${y}, ${text}.`);
+    else if (days < 0 && days >= -3) out.push(`Cette semaine, en ${y} : ${text}.`);
+  }
+  return out;
+}
+
 const angle = (a, b) => Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) * 180 / Math.PI;
 
 export function makeThought({ date, moon, ursa, luna, place }) {
+  // un anniversaire de savant passe avant tout le reste
+  const anniv = almanac(date);
+  if (anniv.length && Math.random() < 0.75) return { text: anniv[Math.floor(Math.random() * anniv.length)], author: 'l’almanach des savants' };
+
   const out = [];
+  if (place && Math.hypot(place.lat - AMBOISE.lat, (place.lon - AMBOISE.lon) * 0.68) < 0.8) {
+    out.push('À quelques lieues de ta maison, au Clos Lucé d’Amboise, Léonard de Vinci a vécu ses trois dernières années, sous ce même ciel.');
+  }
 
   // L'Ourse ce soir
   if (ursa) {

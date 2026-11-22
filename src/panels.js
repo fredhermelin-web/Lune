@@ -1,6 +1,11 @@
 // Panneaux : éphémérides détaillées et réglages.
 import { settings, saveSettings, home, saveHome, place, locate, useHome } from './state.js';
-import { num, time, longDate, shortDate, direction, zodiacSign, CONSTELLATIONS, weekday } from './format.js';
+import { num, time, longDate, shortDate, direction, zodiacSign, CONSTELLATIONS, LATIN, weekday, roman, dayOfYear } from './format.js';
+
+// ---------- mise en page de livre ancien ----------
+export const dropcap = (t) => `<span class="dc">${t.charAt(0)}</span>${t.slice(1)}`;
+export const runhead = (latin) => `<div class="runhead">${latin}</div>`;
+export const folio = (date) => `<div class="folio">❧ &nbsp;f. ${roman(dayOfYear(date), true)} · anno ${roman(date.getFullYear())}&nbsp; ❧</div>`;
 import { QUARTER_NAMES } from './astro.js';
 
 const scrim = document.getElementById('scrim');
@@ -51,7 +56,8 @@ export function renderEphemeris(body, d) {
   const next = luna.next.map((q) => row(QUARTER_NAMES[q.quarter],
     `${weekday(q.date)} ${shortDate(q.date)}`, time(q.date))).join('');
   body.innerHTML = `
-    <h3>${phase.name}</h3>
+    ${runhead('De Luna')}
+    <h3 class="lettrine">${dropcap(phase.name)}</h3>
     <p class="lead">${longDate(date)} · ${time(date)} · ${place.source === 'gps' ? 'position GPS' : place.name}</p>
     <dl class="rows">
       ${row('Illumination', num(moon.fraction * 100, 1) + ' %')}
@@ -59,13 +65,14 @@ export function renderEphemeris(body, d) {
       ${row('Distance', num(Math.round(moon.distanceKm / 10) * 10) + ' km', `diamètre apparent ${num(moon.diameterArcmin, 1)}′${distNote}`)}
       ${row('Hauteur', `${num(alt, 0)}°`, alt >= 0 ? 'au-dessus de l’horizon' : 'sous l’horizon')}
       ${row('Direction', direction(sky.azimuth), `azimut ${num(sky.azimuth, 0)}°`)}
-      ${row('Constellation', CONSTELLATIONS[sky.constellation] || sky.constellation, `signe zodiacal : ${zodiacSign(sky.eclipticLon)}`)}
+      ${row('Constellation', CONSTELLATIONS[sky.constellation] || sky.constellation, `<i>${LATIN[sky.constellation] || ''}</i> · signe zodiacal : ${zodiacSign(sky.eclipticLon)}`)}
       ${row('Libration', libTxt, 'la Lune nous montre un peu plus de ce bord')}
       ${row('Soleil', `${time(events.sun.rise)} — ${time(events.sun.set)}`, 'lever et coucher')}
     </dl>
     <h4>Prochaines phases</h4>
     <dl class="rows">${next}</dl>
-    <p class="motto-small">Le temps venra</p>`;
+    <p class="motto-small">Le temps venra</p>
+    ${folio(date)}`;
 }
 
 export function renderSettings(body, onChange) {
@@ -86,6 +93,10 @@ export function renderSettings(body, onChange) {
     <div class="opt"><div class="txt">Orientation de la Lune<small>${settings.orientation === 'sky' ? 'Telle que tu la vois dans ton ciel' : 'Nord céleste en haut'}</small></div>
       <div class="seg"><button data-orient="sky" aria-pressed="${settings.orientation === 'sky'}">Mon ciel</button><button data-orient="north" aria-pressed="${settings.orientation === 'north'}">Nord</button></div></div>
     ${sw('earthshine', 'Lumière cendrée', 'La Terre éclaire la face nocturne')}
+    <h4>Le cabinet du savant</h4>
+    ${sw('marginalia', 'Annotations à la plume', 'Notes et tracés du savant autour de la Lune')}
+    ${sw('latin', 'Noms latins', 'Sous les constellations, comme sur les atlas anciens')}
+    ${sw('candle', 'Flamme de bougie', 'Une lueur chaude au coin du carnet')}
     ${sw('haptics', 'Petit « tic » au défilement', 'Vibration légère à chaque jour')}
     <p class="credit">Cartes de la Lune : NASA Scientific Visualization Studio, CGI Moon Kit (LRO · LROC WAC, LOLA).<br>
     Calculs : astronomy-engine, Don Cross (licence MIT).<br>

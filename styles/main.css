@@ -93,8 +93,73 @@ body.in-ritual :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .ta
 .thought.is-out p { opacity: 0; transition-duration: 1.1s; }
 
 /* ---------- nocturlabe et sceau ---------- */
-.noct-btn { position: absolute; z-index: 2; left: -4px; bottom: -2px; width: 66px; height: 66px; border-radius: 50%;
+.noct-btn { position: absolute; z-index: 2; left: var(--edge, -4px); bottom: -8px; width: 58px; height: 58px; border-radius: 50%;
   filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }
+
+/* ---------- les marges du savant ---------- */
+.margin { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 1; pointer-events: none;
+  transition: opacity .9s ease; }
+.stage.is-moving .margin { opacity: 0; transition-duration: .2s; }
+.margin .constr { fill: none; stroke: rgba(201, 163, 107, .28); stroke-width: .7; }
+.margin .constr .axis { stroke-dasharray: 2 3; stroke: rgba(216, 189, 134, .5); }
+.margin .constr .arc { stroke: rgba(216, 189, 134, .38); stroke-dasharray: 1 2.5; }
+.margin .constr .zen { stroke: rgba(201, 163, 107, .4); }
+.margin .constr .sol { stroke: rgba(230, 200, 140, .75); stroke-width: .8; }
+.margin .constr .sol-dot { fill: rgba(240, 214, 160, .9); stroke: none; }
+.margin .constr .deg { fill: rgba(216, 189, 134, .62); stroke: none; font: italic 11px var(--serif); text-anchor: middle; }
+.margin .note { pointer-events: auto; cursor: pointer; }
+.margin .note text { fill: #cfab72; font-family: var(--serif); font-style: italic; transition: opacity .4s; }
+.margin .note .l1 { font-size: 14.5px; }
+.margin .note .l2 { font-size: 11px; fill: rgba(207, 171, 114, .72); }
+.margin .note.latin .l1 { font-style: normal; letter-spacing: .04em; font-variant: small-caps; font-size: 15px; }
+.margin .note .quill { fill: none; stroke: rgba(207, 171, 114, .7); stroke-width: .8; stroke-linecap: round; }
+.margin .note .pin { fill: #e8c98e; }
+.margin .note.is-mirror text { transform: scaleX(-1); transform-box: fill-box; transform-origin: center; }
+
+/* ---------- la flamme de bougie ---------- */
+.candle { position: fixed; z-index: 0; right: -30vmax; bottom: -30vmax; width: 80vmax; height: 80vmax; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 176, 92, .13) 0%, rgba(255, 150, 70, .05) 35%, transparent 62%);
+  animation: flicker 5.2s steps(1, end) infinite, sway 7s ease-in-out infinite alternate; opacity: .9; }
+body.no-candle .candle { display: none; }
+@keyframes flicker { 0% { opacity: .85; } 9% { opacity: .95; } 17% { opacity: .8; } 31% { opacity: 1; } 44% { opacity: .88; }
+  58% { opacity: .96; } 66% { opacity: .82; } 79% { opacity: .93; } 91% { opacity: .87; } }
+@keyframes sway { to { transform: translate(-1.5vmax, -1vmax) scale(1.04); } }
+
+/* ---------- pages de livre ancien ---------- */
+.sheet.book {
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(255, 220, 160, .07), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .28 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #241c13, #17110b 60%, #120d08);
+  border-top: 1px solid rgba(216, 189, 134, .35);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 230, 180, .08);
+  color: #ece0c6;
+  transform: perspective(1000px) translateY(105%) rotateX(10deg);
+  transform-origin: 50% 100%;
+}
+.sheet.book.is-open { transform: perspective(1000px) translateY(0) rotateX(0); }
+.book .sheet-grip span { background: rgba(216, 189, 134, .35); }
+.book .runhead { text-align: center; font-family: var(--serif); font-variant: small-caps; letter-spacing: .32em; font-size: 13px;
+  color: rgba(216, 189, 134, .7); margin: 2px 0 8px; }
+.sheet.book h3 { font-size: 27px; color: #f1e6cc; }
+.book .lettrine .dc { float: left; font-size: 58px; line-height: .78; margin: 6px 8px 0 0; color: #c8603f;
+  text-shadow: 0 0 1px rgba(255, 200, 150, .3); font-weight: 500; }
+.book .lettrine::after { content: ''; display: block; clear: both; }
+.sheet.book .lead { color: #bba987; }
+.sheet.book h4 { color: #c8603f; font-family: var(--serif); font-variant: small-caps; text-transform: none; letter-spacing: .14em; font-size: 15px; }
+.sheet.book h4::before { content: '❧ '; color: rgba(216, 189, 134, .8); }
+.book .row { border-bottom: 1px dotted rgba(201, 163, 107, .32); }
+.book .row dt { color: #b9a37f; font-family: var(--serif); font-size: 16px; }
+.sheet.book .row dd { color: #f1e6cc; font-family: var(--serif); font-size: 18px; }
+.sheet.book .row dd small { font-family: var(--sans); color: #a8936f; }
+.book .row dd small i { color: #d8bd86; }
+.book .story { color: #e6d9bc; }
+.book .caption { color: #a8936f; }
+.book .credit { color: #8d7a5c; }
+.book .folio { text-align: center; font-family: var(--serif); font-style: italic; font-size: 13px; color: rgba(216, 189, 134, .6);
+  margin: 18px 0 4px; letter-spacing: .05em; }
+.book .noct .face { fill: #0e0b08; }
+.book .noct .rim { fill: #15100b; }
 .seal-btn { position: absolute; z-index: 2; right: -2px; bottom: 0; width: 54px; height: 54px;
   filter: drop-shadow(0 3px 8px rgba(0,0,0,.7)); animation: breathe 3.6s ease-in-out infinite; }
 .seal-btn svg { width: 100%; height: 100%; }
@@ -117,7 +182,6 @@ body.in-ritual :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .ta
 .caption { text-align: center; font-size: 12px; color: var(--silver); line-height: 1.5; margin: 6px 6px 8px; }
 .story { font-family: var(--serif); font-size: 17px; line-height: 1.55; color: #dcdad3; margin: 8px 0; }
 .row dd.soft { font-family: var(--serif); font-style: italic; font-size: 15px; color: #d4d2cb; max-width: 66%; }
-.sheet.sheet-secret { background: linear-gradient(180deg, #17120d, #0b0907); border-top-color: rgba(216,189,134,.3); }
 .seal-big { width: 92px; height: 92px; margin: 8px auto 2px; }
 .seal-big svg { width: 100%; height: 100%; }
 .center { text-align: center; }

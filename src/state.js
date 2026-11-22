@@ -20,6 +20,9 @@ export const settings = load('lc.settings', {
   orientation: 'sky',      // 'sky' : vue réelle · 'north' : nord en haut
   earthshine: true,
   haptics: true,
+  marginalia: true,        // annotations à la plume et tracés du savant
+  latin: true,             // noms latins des constellations
+  candle: true,            // flamme de bougie
   world: 'observatoire',
 });
 export const home = load('lc.home', HOME_DEFAULT);

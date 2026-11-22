@@ -2,7 +2,7 @@
 // les tracés des constellations, l'écliptique (la route de la Lune) et quelques noms.
 // Le scintillement des étoiles brillantes est confié au compositeur (CSS) — économe.
 import { sky, project, starColor, starName, eclipticVec, vec } from './sky.js';
-import { CONSTELLATIONS } from './format.js';
+import { CONSTELLATIONS, LATIN } from './format.js';
 
 const FIELD = 36;   // demi-champ horizontal, en degrés
 const PLEIADES = vec(56.75, 24.12);
@@ -11,6 +11,7 @@ export function initSkyRenderer(canvas, twinkleLayer) {
   const ctx = canvas.getContext('2d');
   let W = 0, H = 0, dpr = 1, bg = null;
   let pending = 0, last = null;
+  const opts = { exclusions: () => [], latin: true };
   const twinkles = [];
   for (let i = 0; i < 16; i++) {
     const s = document.createElement('i');
@@ -151,15 +152,26 @@ export function initSkyRenderer(canvas, twinkleLayer) {
       }
     }
 
-    // noms des constellations
-    ctx.font = '500 9px Inter, sans-serif';
+    // les noms ne se posent que dans le ciel libre, jamais sous l'interface ni sur la Lune
+    const zones = opts.exclusions();
+    const free = (x0, y0, x1, y1) => !zones.some((r) => x1 > r.left && x0 < r.right && y1 > r.top && y0 < r.bottom);
+
+    // noms des constellations (et leur nom latin, comme sur les atlas anciens)
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(160, 172, 190, 0.38)';
     for (const lb of sky.labels) {
       const p = toScreen(lb.v);
       if (!on(p, -10) || up(lb.v) < 0) continue;
-      if (Math.hypot(p[0] - cx, p[1] - cy) < 170) continue;   // jamais sur la Lune
-      spaced(CONSTELLATIONS[lb.id] || lb.id, p[0], p[1]);
+      const fr = CONSTELLATIONS[lb.id] || lb.id, la = LATIN[lb.id];
+      const w = fr.length * 7.4 + 8;
+      if (!free(p[0] - w / 2, p[1] - 10, p[0] + w / 2, p[1] + (opts.latin ? 16 : 4))) continue;
+      ctx.font = '500 9px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(160, 172, 190, 0.38)';
+      spaced(fr, p[0], p[1]);
+      if (opts.latin && la && la !== fr) {
+        ctx.font = 'italic 11px "EB Garamond", serif';
+        ctx.fillStyle = 'rgba(201, 170, 120, 0.42)';
+        ctx.fillText(la, p[0], p[1] + 12);
+      }
     }
 
     // noms des étoiles brillantes, et les Pléiades
@@ -169,11 +181,12 @@ export function initSkyRenderer(canvas, twinkleLayer) {
     for (const b of bright) {
       const n = sky.names[b.i];
       if (!n || b.mag > 2.1 || n === 'Alcyone') continue;
-      if (Math.hypot(b.p[0] - cx, b.p[1] - cy) < 165) continue;
-      ctx.fillText(starName(n), b.p[0] + 7, b.p[1] + 4);
+      const label = starName(n);
+      if (!free(b.p[0] + 5, b.p[1] - 9, b.p[0] + 9 + label.length * 6.2, b.p[1] + 6)) continue;
+      ctx.fillText(label, b.p[0] + 7, b.p[1] + 4);
     }
     const pl = toScreen(PLEIADES);
-    if (on(pl, -10) && Math.hypot(pl[0] - cx, pl[1] - cy) > 165) {
+    if (on(pl, -10) && free(pl[0] + 7, pl[1], pl[0] + 80, pl[1] + 18)) {
       ctx.fillStyle = 'rgba(200, 214, 255, 0.62)';
       ctx.fillText('les Pléiades', pl[0] + 9, pl[1] + 14);
     }
@@ -194,5 +207,9 @@ export function initSkyRenderer(canvas, twinkleLayer) {
     else ctx.fillText(t, x, y);
   }
 
-  return { draw, redraw: () => last && draw(last.basis, last.center, last.zen) };
+  return {
+    draw,
+    redraw: () => last && draw(last.basis, last.center, last.zen),
+    configure: (o) => Object.assign(opts, o),
+  };
 }

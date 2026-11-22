@@ -3,6 +3,7 @@
 // Ici, il montre en direct l'Ourse telle qu'elle est au-dessus de toi, regard tourné vers le nord.
 import { sky, specialVec, basis, project, zenith, horizontal, localSiderealTime, DIPPER, DIPPER_LINES, CASSIOPEIA } from './sky.js';
 import { direction, num, time } from './format.js';
+import { dropcap, runhead, folio } from './panels.js';
 
 const ROMAN = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
 const R = 40;                          // rayon utile du cadran (unités SVG)
@@ -124,7 +125,8 @@ export function ursaSheet(body, u, date, placeName) {
   const pos = u.centre;
   const visible = pos.altitude > 0;
   body.innerHTML = `
-    <h3>La Grande Ourse</h3>
+    ${runhead('De Ursa Maiore')}
+    <h3 class="lettrine">${dropcap('La Grande Ourse')}</h3>
     <p class="lead">${u.circumpolar ? `Toujours veillante : à ${placeName}, elle ne se couche jamais.` : 'Selon l’heure, elle frôle l’horizon.'}</p>
     <div class="noct-big">${nocturlabeSvg(u, date, true)}</div>
     <p class="caption">Le ciel du nord à ${time(date)}, tel que tu le vois en tournant le dos au sud.
@@ -146,5 +148,6 @@ export function ursaSheet(body, u, date, placeName) {
       <i>septentrion</i>, le nord.</p>
     <p class="story">Prolonge cinq fois la ligne Merak → Dubhe : tu tombes sur la Polaire, l’étoile immobile.
       Suis l’arc de la queue : il mène à Arcturus, « le gardien de l’Ourse ».</p>
-    <p class="motto-small">Ursine, le temps venra</p>`;
+    <p class="motto-small">Ursine, le temps venra</p>
+    ${folio(date)}`;
 }

@@ -13,12 +13,19 @@ import { ursa, nocturlabeSvg, ursaSheet } from './nocturlabe.js';
 import { fullMoonOn, sealSvg, secretPage } from './secrets.js';
 import { makeThought } from './thoughts.js';
 import { playRitual } from './ritual.js';
+import { initMarginalia } from './marginalia.js';
 
 const $ = (id) => document.getElementById(id);
 const DAY = 86400000;
 
 // ---------- le ciel et la Lune ----------
 const skyR = initSkyRenderer($('sky'), $('twinkles'));
+const UI_ZONES = ['.topbar', '.month', '.strip', '.stage', '.phase', '.riseset', '.cycle', '.more', '.tabs'];
+skyR.configure({
+  exclusions: () => UI_ZONES.map((q) => document.querySelector(q)?.getBoundingClientRect()).filter(Boolean),
+  latin: settings.latin,
+});
+document.body.classList.toggle('no-candle', !settings.candle);
 const skyReady = loadSky().catch((e) => console.error('Catalogue', e));
 
 const stage = $('stage');
@@ -31,13 +38,26 @@ try {
   stage.insertAdjacentHTML('beforeend', '<p class="lead" style="padding:40px;text-align:center">Ce navigateur ne permet pas le rendu WebGL2.</p>');
 }
 
+const margin = initMarginalia(stage);
+let stageSize = 300;
+
 function sizeStage() {
   // la Lune prend toute la place disponible, en gardant la courbe du cycle visible
   const free = window.innerHeight - 556;
   const s = Math.round(Math.max(240, Math.min(window.innerWidth * 0.88, 430, free)));
+  stageSize = s;
   stage.style.width = stage.style.height = s + 'px';
+  // le nocturlabe se range contre le bord de l'écran, loin de la Lune
+  stage.style.setProperty('--edge', `${Math.min(-4, -(Math.min(window.innerWidth, 520) - s) / 2 + 6)}px`);
   renderer?.resize(s);
   drawSky();
+  if (moonNow) updateMargin();
+}
+
+function updateMargin() {
+  if (!settings.marginalia || !renderer) { margin.el.style.display = 'none'; return; }
+  margin.el.style.display = '';
+  margin.update(moonNow, stageSize, renderer.radiusFor(moonNow.distanceKm) * stageSize / 2, Math.round(clock.offset));
 }
 
 const timeline = initTimeline($('strip'), $('strip-track'));
@@ -138,6 +158,13 @@ function render(reasons) {
   }
 
   const moving = reasons.has('scrub') || reasons.has('anim');
+  // l'encre sèche quand le temps s'arrête : les annotations reviennent à l'arrêt
+  stage.classList.toggle('is-moving', moving);
+  if (!moving) updateMargin();
+  if (reasons.has('settings')) {
+    skyR.configure({ latin: settings.latin });
+    document.body.classList.toggle('no-candle', !settings.candle);
+  }
   if (!moving || !last) {
     last = { moon, sky: moonSky(date, obs), phase, luna, events, date };
     if (sheet.isOpen) renderEphemeris($('sheet-body'), last);

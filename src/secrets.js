@@ -2,6 +2,7 @@
 // et le carnet de l'astronome qui garde la trace des sceaux gagnés.
 import { quartersBetween } from './astro.js';
 import { time, longDate } from './format.js';
+import { runhead, folio } from './panels.js';
 
 const DAY = 86400000;
 
@@ -89,6 +90,7 @@ export function secretPage(body, fm, onChange) {
   const won = carnet.seals[key];
   const count = Object.keys(carnet.seals).length;
   body.innerHTML = `
+    ${runhead('Liber secretorum')}
     <div class="seal-big">${sealSvg()}</div>
     <h3 class="center">${name}</h3>
     <p class="lead center">${longDate(fm.date)} · pleine à ${time(fm.date)}</p>
@@ -100,7 +102,8 @@ export function secretPage(body, fm, onChange) {
     <div class="search"><input id="riddle-a" type="text" placeholder="Ta réponse…" autocomplete="off" enterkeyhint="done"><button class="btn" id="riddle-go">Sceller</button></div>
     <p class="lead" id="riddle-msg"></p>`}
     <p class="credit">Carnet de l’astronome : ${count} sceau${count > 1 ? 'x' : ''}.</p>
-    <p class="motto-small">Le temps venra</p>`;
+    <p class="motto-small">Le temps venra</p>
+    ${folio(fm.date)}`;
   const go = body.querySelector('#riddle-go');
   if (!go) return;
   const input = body.querySelector('#riddle-a'), msg = body.querySelector('#riddle-msg');
