@@ -1,6 +1,6 @@
 // Service worker : toute l'application est gardée sur le téléphone et fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour pour que le téléphone récupère les nouveaux fichiers.
-const VERSION = 'lune-v6';
+const VERSION = 'lune-v7';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'styles/main.css',
   'src/main.js', 'src/state.js', 'src/astro.js', 'src/format.js', 'src/moon-renderer.js',
@@ -14,7 +14,10 @@ const FILES = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' : on ignore le cache du navigateur (GitHub le garde 10 min), pour prendre la vraie nouvelle version
+  e.waitUntil(caches.open(VERSION)
+    .then((c) => c.addAll(FILES.map((f) => new Request(f, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {

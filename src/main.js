@@ -216,5 +216,13 @@ document.addEventListener('visibilitychange', () => {
 
 // ---------- application installable (hors ligne) ----------
 if ('serviceWorker' in navigator && !['localhost', '127.0.0.1'].includes(location.hostname)) {
-  navigator.serviceWorker.register('sw.js');
+  // quand une nouvelle version vient d'être installée, on recharge une fois pour l'afficher aussitôt
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && !reloaded) { reloaded = true; location.reload(); }
+  });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  });
 }

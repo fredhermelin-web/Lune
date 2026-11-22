@@ -116,7 +116,8 @@ export function renderSettings(body, onChange) {
     <p class="credit">Cartes de la Lune : NASA Scientific Visualization Studio, CGI Moon Kit (LRO · LROC WAC, LOLA).<br>
     Calculs : astronomy-engine, Don Cross (licence MIT).<br>
     Étoiles : d3-celestial (O. Frohn) d’après la base HYG (D. Nash).<br>Recherche de commune : Base Adresse Nationale (IGN / data.gouv.fr).</p>
-    <p class="motto-small">Ursine, le temps venra</p>`;
+    <p class="motto-small">Ursine, le temps venra</p>
+    <p class="credit" style="text-align:center">Version 7 · 22 novembre 2026</p>`;
 
   body.querySelectorAll('.switch').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.key;
