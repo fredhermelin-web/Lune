@@ -41,7 +41,7 @@ export function initSkyRenderer(canvas, twinkleLayer) {
   function background() {
     if (bg) return bg;
     bg = ctx.createRadialGradient(W * 0.5, H * 0.3, 0, W * 0.5, H * 0.3, Math.max(W, H) * 0.85);
-    bg.addColorStop(0, '#0b111b'); bg.addColorStop(0.55, '#05080e'); bg.addColorStop(1, '#020306');
+    bg.addColorStop(0, '#13234f'); bg.addColorStop(0.5, '#0a1534'); bg.addColorStop(1, '#040918');
     return bg;
   }
 

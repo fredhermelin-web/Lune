@@ -73,15 +73,22 @@ export function renderEphemeris(body, d) {
     <h3 class="lettrine">${dropcap(phase.name)}</h3>
     <p class="lead">${longDate(date)} · ${time(date)} · ${place.source === 'gps' ? 'position GPS' : place.name}</p>
     <dl class="rows">
-      ${row('Illumination', num(moon.fraction * 100, 1) + ' %')}
-      ${row('Âge', luna.age != null ? num(luna.age, 1) + ' jours' : '—', 'depuis la nouvelle lune')}
-      ${row('Distance', num(Math.round(moon.distanceKm / 10) * 10) + ' km', `diamètre apparent ${num(moon.diameterArcmin, 1)}′${distNote}`)}
-      ${row('Hauteur', `${num(alt, 0)}°`, alt >= 0 ? 'au-dessus de l’horizon' : 'sous l’horizon')}
-      ${row('Direction', direction(sky.azimuth), `azimut ${num(sky.azimuth, 0)}°`)}
-      ${row('Constellation', CONSTELLATIONS[sky.constellation] || sky.constellation, `<i>${LATIN[sky.constellation] || ''}</i> · signe zodiacal : ${zodiacSign(sky.eclipticLon)}`)}
-      ${row('Libration', libTxt, 'la Lune nous montre un peu plus de ce bord')}
-      ${row('Soleil', `${time(events.sun.rise)} — ${time(events.sun.set)}`, 'lever et coucher')}
+      ${row('Illumination', num(moon.fraction * 100, 0) + ' %')}
+      ${row('Âge', luna.age != null ? num(luna.age, 1) + ' jours' : '—')}
+      ${row('Dans le ciel', alt >= 0 ? `${direction(sky.azimuth)}, ${num(alt, 0)}°` : 'sous l’horizon')}
+      ${row('Distance', num(Math.round(moon.distanceKm / 100) * 100) + ' km', distNote.replace(' · ', ''))}
+      ${row('Constellation', CONSTELLATIONS[sky.constellation] || sky.constellation)}
     </dl>
+    <details class="fold"><summary>Plus de détails</summary>
+      <dl class="rows">
+        ${row('Hauteur', `${num(alt, 0)}°`, alt >= 0 ? 'au-dessus de l’horizon' : 'sous l’horizon')}
+        ${row('Azimut', `${num(sky.azimuth, 0)}°`, direction(sky.azimuth))}
+        ${row('Diamètre apparent', `${num(moon.diameterArcmin, 1)}′`)}
+        ${row('Nom latin', `<i>${LATIN[sky.constellation] || ''}</i>`, `signe zodiacal : ${zodiacSign(sky.eclipticLon)}`)}
+        ${row('Libration', libTxt, 'la Lune nous montre un peu plus de ce bord')}
+        ${row('Soleil', `${time(events.sun.rise)} — ${time(events.sun.set)}`, 'lever et coucher')}
+      </dl>
+    </details>
     <h4>Prochaines phases</h4>
     <dl class="rows">${next}</dl>
     ${almanacHtml(date)}
@@ -109,7 +116,7 @@ export function renderSettings(body, onChange) {
     ${sw('earthshine', 'Lumière cendrée', 'La Terre éclaire la face nocturne')}
     <h4>Le cabinet du savant</h4>
     ${sw('galileo', 'La Lune de Galilée', 'Au lavis de sépia — ou appui long sur la Lune')}
-    ${sw('marginalia', 'Annotations à la plume', 'Notes et tracés du savant autour de la Lune')}
+    ${sw('marginalia', 'Plume du savant', 'Le bouton ✒ en haut de l’écran Lune affiche ou masque les annotations')}
     ${sw('latin', 'Noms latins', 'Sous les constellations, comme sur les atlas anciens')}
     ${sw('candle', 'Flamme de bougie', 'Une lueur chaude au coin du carnet')}
     ${sw('haptics', 'Petit « tic » au défilement', 'Vibration légère à chaque jour')}
@@ -117,7 +124,7 @@ export function renderSettings(body, onChange) {
     Calculs : astronomy-engine, Don Cross (licence MIT).<br>
     Étoiles : d3-celestial (O. Frohn) d’après la base HYG (D. Nash).<br>Recherche de commune : Base Adresse Nationale (IGN / data.gouv.fr).</p>
     <p class="motto-small">Ursine, le temps venra</p>
-    <p class="credit" style="text-align:center">Version 9 · la carte du ciel</p>`;
+    <p class="credit" style="text-align:center">Version 10 · l’atelier</p>`;
 
   body.querySelectorAll('.switch').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.key;

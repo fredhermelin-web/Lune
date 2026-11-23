@@ -24,6 +24,7 @@ export function azAlt(v) {
 export function initSkyMap(canvas, { onInfo } = {}) {
   const ctx = canvas.getContext('2d');
   const view = { az: 20, alt: 35, fov: 100, compass: false, fwd: null, up: null };
+  const opts = { labels: false };
   let W = 0, H = 0, dpr = 1, pending = 0, state = null, active = false;
 
   function resize() {
@@ -105,7 +106,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
     const day = Math.max(0, Math.min(1, (state.sunAlt + 12) / 14));
     const mixc = (a, b) => `rgb(${a.map((x, i) => Math.round(x + (b[i] - x) * day)).join(',')})`;
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, mixc([3, 5, 10], [22, 40, 70])); g.addColorStop(1, mixc([10, 16, 32], [52, 78, 112]));
+    g.addColorStop(0, mixc([6, 12, 34], [22, 40, 70])); g.addColorStop(1, mixc([18, 32, 70], [52, 78, 112]));
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
     // grille de hauteur (30°, 60°) et méridiens tous les 45°
@@ -169,48 +170,64 @@ export function initSkyMap(canvas, { onInfo } = {}) {
       ctx.globalAlpha = Math.min(1, 0.3 + (limit - mag) * 0.22) * (hv[2] < 0 ? 0.25 : 1) * (1 - day * 0.45);
       ctx.fillStyle = `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
       ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.2832); ctx.fill();
-      if (sky.names[i] && (mag < 1.7 || Object.values(sky.special).includes(i))) named.push({ i, p, mag });
+      if (sky.names[i] && hv[2] > 0 && (mag < 2.3 || Object.values(sky.special).includes(i))) named.push({ i, p, mag });
     }
     ctx.globalAlpha = 1;
 
-    // la Lune, avec sa vraie phase, éclairée du côté du Soleil
-    drawMoon(P, on);
-
-    // planètes
-    ctx.font = 'italic 14px "EB Garamond", serif'; ctx.textAlign = 'left';
+    // ---------- étiquettes : peu de noms, jamais les uns sur les autres ----------
+    const placed = [];
+    const label = (text, x, y, font, color, align = 'left', force = false) => {
+      ctx.font = font;
+      const w = ctx.measureText(text).width, h = parseFloat(font.match(/(\d+(?:\.\d+)?)px/)[1]);
+      const x0 = align === 'center' ? x - w / 2 : x, r = [x0 - 3, y - h, x0 + w + 3, y + 4];
+      if (!force && placed.some((q) => r[2] > q[0] && r[0] < q[2] && r[3] > q[1] && r[1] < q[3])) return false;
+      placed.push(r);
+      ctx.textAlign = align; ctx.fillStyle = color;
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(4, 8, 20, .85)'; ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+      return true;
+    };
+    const showAll = opts.labels;
+    // la Grande Ourse et la Polaire d'abord : toujours nommées
+    const order = ['dubhe', 'alkaid', 'merak', 'mizar', 'alioth', 'phecda', 'megrez', 'polaris'];
+    for (const k of order) {
+      const p = P(state.toHor(specialVec(k)));
+      if (!on(p, -10)) continue;
+      label(k === 'polaris' ? 'la Polaire' : starName(sky.names[sky.special[k]]), p[0] + 7, p[1] - 6,
+        'italic 15px "EB Garamond", serif', '#f0cf8e', 'left', k === 'dubhe' || k === 'polaris');
+    }
+    {
+      const p = P(state.ursa);
+      if (on(p, -20)) label('Grande Ourse', p[0], p[1] + 34, '500 12px Inter, sans-serif', 'rgba(240, 207, 142, 0.95)', 'center', true);
+    }
+    // la Lune et les planètes
+    drawMoon(P, on, label);
     for (const pl of state.planets) {
       const p = P(pl.v);
       if (!on(p, 10)) continue;
-      const r = Math.max(2, 3.6 - pl.mag * 0.35);
+      const r = Math.max(2.2, 3.8 - pl.mag * 0.35);
+      const visible = pl.v[2] > 0;
       ctx.fillStyle = pl.color; ctx.globalAlpha = pl.v[2] < 0 ? 0.35 : 1;
       ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.2832); ctx.fill();
-      ctx.fillStyle = 'rgba(240, 207, 142, 0.9)';
-      ctx.fillText(pl.name, p[0] + r + 5, p[1] + 4);
+      ctx.globalAlpha = 1;
+      if (visible) label(pl.name, p[0] + r + 5, p[1] + 5, 'italic 16px "EB Garamond", serif', '#f3d9a6');
     }
-    ctx.globalAlpha = 1;
-
-    // noms des constellations (français + latin)
-    ctx.textAlign = 'center';
-    for (const lb of sky.labels) {
-      const hv = state.toHor(lb.v);
-      const p = P(hv);
-      if (lb.id === 'UMa') p[1] += 26;   // sous la casserole, pour ne pas couvrir ses étoiles
-      if (!on(p, -20) || hv[2] < -0.05) continue;
-      ctx.font = '500 9.5px Inter, sans-serif';
-      ctx.fillStyle = lb.id === 'UMa' ? 'rgba(240, 207, 142, 0.85)' : 'rgba(170, 182, 200, 0.5)';
-      spaced((CONSTELLATIONS[lb.id] || lb.id).toUpperCase(), p[0], p[1]);
-      if (view.fov < 130) {
-        ctx.font = 'italic 12px "EB Garamond", serif';
-        ctx.fillStyle = 'rgba(201, 170, 120, 0.55)';
-        ctx.fillText(LATIN[lb.id] || '', p[0], p[1] + 13);
-      }
-    }
-    // noms des étoiles
-    ctx.textAlign = 'left'; ctx.font = 'italic 13px "EB Garamond", serif';
+    // étoiles brillantes : seulement les plus belles, ou toutes si on zoome / « Noms »
+    const starLimit = showAll ? 2.2 : view.fov < 60 ? 1.6 : 0.9;
     for (const n of named) {
-      const isUrsa = DIPPER.some((k) => sky.special[k] === n.i) || sky.special.polaris === n.i;
-      ctx.fillStyle = isUrsa ? 'rgba(240, 207, 142, 0.95)' : 'rgba(226, 228, 234, 0.7)';
-      ctx.fillText(starName(sky.names[n.i]), n.p[0] + 6, n.p[1] - 5);
+      if (n.mag > starLimit || Object.values(sky.special).includes(n.i)) continue;
+      label(starName(sky.names[n.i]), n.p[0] + 6, n.p[1] - 5, 'italic 15px "EB Garamond", serif', 'rgba(236, 238, 244, 0.85)');
+    }
+    // constellations : à la demande, ou de près
+    if (showAll || view.fov < 70) {
+      for (const lb of sky.labels) {
+        if (lb.id === 'UMa') continue;
+        const hv = state.toHor(lb.v);
+        const p = P(hv);
+        if (!on(p, -20) || hv[2] < -0.05) continue;
+        const ok = label((CONSTELLATIONS[lb.id] || lb.id).toUpperCase(), p[0], p[1], '500 11px Inter, sans-serif', 'rgba(180, 194, 214, 0.75)', 'center');
+        if (ok && (view.fov < 60 || showAll)) label(LATIN[lb.id] || '', p[0], p[1] + 15, 'italic 14px "EB Garamond", serif', 'rgba(216, 189, 134, 0.8)', 'center');
+      }
     }
 
     // le sol, l'horizon et les points cardinaux
@@ -262,7 +279,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
     }
   }
 
-  function drawMoon(P, on) {
+  function drawMoon(P, on, label) {
     const p = P(state.moonV);
     if (!on(p, 20)) return;
     const r = 9;
@@ -279,8 +296,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
     ctx.fillStyle = '#1d2230'; ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.2832); ctx.fill();
     ctx.fillStyle = '#efeee6'; ctx.fill(new Path2D(phasePath(state.moonF, true, r)));
     ctx.restore();
-    ctx.font = 'italic 14px "EB Garamond", serif'; ctx.fillStyle = 'rgba(236, 235, 230, 0.85)'; ctx.textAlign = 'left';
-    ctx.fillText('la Lune', p[0] + r + 6, p[1] + 4);
+    if (state.moonV[2] > 0) label('la Lune', p[0] + r + 6, p[1] + 5, 'italic 16px "EB Garamond", serif', '#efeee6', 'left', true);
   }
 
   function spaced(t, x, y) {
@@ -350,6 +366,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
 
   return {
     setTime, centerOnUrsa, setCompass, resize,
+    setLabels(v) { opts.labels = v; draw(); },
     setActive(v) { active = v; if (v) resize(); },
     get compass() { return view.compass; },
   };

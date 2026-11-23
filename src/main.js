@@ -16,6 +16,7 @@ import { playRitual, showThought } from './ritual.js';
 import { saveSettings } from './state.js';
 import { initMarginalia } from './marginalia.js';
 import { renderSun } from './sun.js';
+import { INKWELL, CANDLE, TELESCOPE, openEyepiece } from './atelier.js';
 import { initSkyMap } from './skymap.js';
 import { direction as dirName, time as fmtTime } from './format.js';
 
@@ -59,7 +60,9 @@ function sizeStage() {
 }
 
 function updateMargin() {
-  if (!settings.marginalia || !renderer) { margin.el.style.display = 'none'; return; }
+  $('quill-btn').setAttribute('aria-pressed', String(!!settings.notes));
+  $('quill-btn').hidden = !settings.marginalia;
+  if (!settings.marginalia || !settings.notes || !renderer) { margin.el.style.display = 'none'; return; }
   margin.el.style.display = '';
   margin.update(moonNow, stageSize, renderer.radiusFor(moonNow.distanceKm) * stageSize / 2, Math.round(clock.offset));
 }
@@ -95,11 +98,32 @@ $('more-btn').addEventListener('click', () => sheet.open());
 $('settings-btn').addEventListener('click', () => settingsSheet.open());
 $('place-btn').addEventListener('click', () => settingsSheet.open());
 $('today-btn').addEventListener('click', () => animateTo(0, 600));
+$('quill-btn').addEventListener('click', () => { settings.notes = !settings.notes; saveSettings(); updateMargin(); });
 $('noct-btn').addEventListener('click', (e) => { e.stopPropagation(); ursaPanel.open(); });
 $('noct-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
 $('seal-btn').addEventListener('click', (e) => { e.stopPropagation(); secretPanel.open(); });
 $('seal-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
 $('seal-btn').innerHTML = sealSvg();
+
+// ---------- l'atelier : encrier, bougie, lunette ----------
+$('desk-ink').innerHTML = INKWELL;
+$('desk-candle').innerHTML = CANDLE;
+$('scope-btn').innerHTML = TELESCOPE;
+$('scope-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('scope-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!renderer || !moonNow) return;
+  const r = stage.getBoundingClientRect();
+  const radius = renderer.radiusFor(moonNow.distanceKm) * r.width / 2;
+  const wasGalileo = !!settings.galileo;
+  document.body.classList.add('in-scope');
+  renderer.setStyle(1, true);
+  navigator.vibrate?.(10);
+  openEyepiece([r.left + r.width / 2, r.top + r.height / 2], radius + 6, () => {
+    document.body.classList.remove('in-scope');
+    if (!wasGalileo) renderer.setStyle(0, true);
+  });
+});
 
 function openUrsa() {
   if (!sky.ready) return;
@@ -148,6 +172,11 @@ $('map-compass').addEventListener('click', (e) => {
   skymap.setCompass(on);
   e.currentTarget.setAttribute('aria-pressed', String(on));
   if (on) $('map-info').textContent = 'Lève ton téléphone vers le ciel…';
+});
+$('map-names').addEventListener('click', (e) => {
+  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+  e.currentTarget.setAttribute('aria-pressed', String(on));
+  skymap.setLabels(on);
 });
 $('map-red').addEventListener('click', (e) => {
   const on = !document.body.classList.contains('night-red');

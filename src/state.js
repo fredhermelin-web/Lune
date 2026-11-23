@@ -20,7 +20,8 @@ export const settings = load('lc.settings', {
   orientation: 'sky',      // 'sky' : vue réelle · 'north' : nord en haut
   earthshine: true,
   haptics: true,
-  marginalia: true,        // annotations à la plume et tracés du savant
+  marginalia: true,        // annotations à la plume et tracés du savant (autorisées)
+  notes: false,            // affichées ? (la plume, en haut de l'écran Lune)
   latin: true,             // noms latins des constellations
   candle: true,            // flamme de bougie
   galileo: false,          // la Lune au lavis, comme Galilée
