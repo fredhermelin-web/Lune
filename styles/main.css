@@ -187,8 +187,6 @@ body[data-view="view-sun"] .sky.is-awake, body[data-view="view-sky"] .sky.is-awa
 .map-now { min-width: 120px; padding: 6px 14px; border-radius: 18px; border: 1px solid rgba(216,189,134,.35); background: rgba(10,13,19,.8);
   font-size: 17px; color: var(--moon); font-weight: 400; line-height: 1.2; }
 .map-now small { display: block; font-size: 10.5px; color: var(--silver); letter-spacing: .06em; }
-/* mode nuit rouge : préserve la vision nocturne dehors */
-body.night-red { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-45deg) brightness(.62); }
 
 /* ---------- la flamme de bougie ---------- */
 .candle { position: fixed; z-index: 0; right: -30vmax; bottom: -30vmax; width: 80vmax; height: 80vmax; pointer-events: none;
@@ -579,7 +577,6 @@ body.in-scope :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .signet, .n
 .venus-plate { display: flex; flex-direction: column; align-items: center; margin: 14px 0 6px;
   padding: 18px 10px 6px; border-radius: 12px; background: radial-gradient(circle, rgba(60, 40, 20, .12), transparent 70%); }
 .venus-draw { filter: drop-shadow(0 2px 6px rgba(60, 35, 10, .35)); }
-.map-btn.map-venus { color: #fff1c8; border-color: rgba(255, 236, 190, .45); }
 
 /* la profondeur : étoiles lointaines qui dérivent, étoiles filantes */
 .drift { position: absolute; left: 0; top: 0; width: calc(100% + 1200px); height: calc(100% + 1200px); pointer-events: none;
@@ -605,3 +602,36 @@ body[data-view="view-sun"] .drift, body[data-view="view-sky"] .drift { display: 
   bottom: calc(var(--tabs-h) + var(--safe-bottom) - 2px); height: 44px; width: min(calc(100% - 28px), 460px); }
 .signet span { line-height: 44px; }
 .view-moon { padding-bottom: 58px; }
+
+/* Vénus : un vrai joyau dans le ciel, qu'on touche — à l'ouest le soir, à l'est le matin */
+.venus-jewel { position: absolute; z-index: 2; top: -14px; right: var(--edge, -4px); width: 92px; height: 84px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding-top: 6px; }
+.venus-jewel.is-east { right: auto; left: var(--edge, -4px); }
+.vj-star { position: relative; width: 34px; height: 34px; animation: vjtw 3.2s ease-in-out infinite; }
+.vj-star::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, #fffdf4 0 13%, rgba(255, 238, 190, .95) 18%, rgba(255, 214, 140, .45) 38%, rgba(255, 200, 120, 0) 70%); }
+.vj-star::after { content: ''; position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+  background:
+    linear-gradient(90deg, transparent 0, rgba(255, 246, 220, .95) 50%, transparent 100%) center / 100% 1.6px no-repeat,
+    linear-gradient(0deg, transparent 0, rgba(255, 246, 220, .95) 50%, transparent 100%) center / 1.6px 100% no-repeat;
+  transform: rotate(0deg); }
+@keyframes vjtw { 0%, 100% { transform: scale(1); filter: brightness(1); } 45% { transform: scale(.86) rotate(8deg); filter: brightness(.85); }
+  70% { transform: scale(1.08); filter: brightness(1.15); } }
+.vj-name { font-family: var(--serif); font-style: italic; font-size: 17px; color: #fff1c8; line-height: 1; margin-top: 2px;
+  text-shadow: 0 0 8px rgba(255, 220, 150, .6), 0 1px 3px rgba(0,0,0,.8); }
+.vj-when { font-size: 10.5px; color: #e8d3a3; letter-spacing: .02em; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,.9); }
+.venus-jewel.is-dim .vj-star { opacity: .45; animation: none; }
+.venus-jewel.is-dim .vj-name { color: #b9a37f; text-shadow: none; }
+body.in-ritual .venus-jewel, body.in-scope .venus-jewel { opacity: 0; }
+.venus-jewel { transition: opacity 1.6s ease; }
+
+/* la bougie soufflée */
+body.candle-out .desk-candle .c-flame, body.candle-out .desk-candle .c-halo { opacity: 0; transition: opacity .5s; }
+body.candle-out .candle { opacity: 0 !important; animation: none; transition: opacity 1s; }
+
+/* boutons de la carte : tous égaux, lumineux comme du laiton à la bougie */
+.map-btn { color: #fbe7b8; border: 1px solid rgba(240, 207, 142, .7);
+  background: linear-gradient(180deg, rgba(120, 90, 45, .55), rgba(60, 42, 18, .65));
+  box-shadow: 0 0 10px rgba(240, 200, 120, .25), inset 0 1px 0 rgba(255, 235, 190, .25);
+  text-shadow: 0 0 6px rgba(255, 220, 150, .45); }
+.map-btn[aria-pressed="true"] { background: linear-gradient(180deg, rgba(240, 207, 142, .85), rgba(190, 150, 80, .85)); color: #2a1a08; text-shadow: none; }

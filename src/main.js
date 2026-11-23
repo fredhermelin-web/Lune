@@ -18,7 +18,7 @@ import { initMarginalia } from './marginalia.js';
 import { renderSun } from './sun.js';
 import { INKWELL, CANDLE, TELESCOPE, openEyepiece } from './atelier.js';
 import { renderCarnet } from './carnet.js';
-import { venusAt, venusShort, renderVenus } from './venus.js';
+import { venusAt, renderVenus } from './venus.js';
 import { initDrift } from './drift.js';
 import { initSkyMap } from './skymap.js';
 import { direction as dirName, time as fmtTime } from './format.js';
@@ -52,7 +52,7 @@ let stageSize = 300;
 
 function sizeStage() {
   // la Lune prend toute la place disponible, en gardant la courbe du cycle visible
-  const free = window.innerHeight - 640;
+  const free = window.innerHeight - 600;
   const s = Math.round(Math.max(240, Math.min(window.innerWidth * 0.88, 430, free)));
   stageSize = s;
   stage.style.width = stage.style.height = s + 'px';
@@ -120,18 +120,14 @@ const carnetPanel = initSheet($('carnet'), $('carnet-grip'), {
 });
 $('desk-ink').addEventListener('click', () => carnetPanel.open());
 const venusPanel = initSheet($('venus'), $('venus-grip'), { onOpen: () => renderVenus($('venus-body'), venusAt(clock.date, obs), clock.date) });
-$('venus-line').addEventListener('click', () => venusPanel.open());
-// la bougie : la veillée, lumière rouge pour garder les yeux de la nuit
-function setVeillee(on) {
-  document.body.classList.toggle('night-red', on);
-  $('desk-candle').setAttribute('aria-pressed', String(on));
-  $('map-red')?.setAttribute('aria-pressed', String(on));
-}
+$('venus-jewel').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('venus-jewel').addEventListener('click', (e) => { e.stopPropagation(); venusPanel.open(); });
+// la bougie : on la souffle, on la rallume
 $('desk-candle').addEventListener('click', () => {
-  const on = !document.body.classList.contains('night-red');
-  setVeillee(on);
-  document.querySelectorAll('.thought').forEach((t) => t.remove());
-  showThought({ text: on ? 'La veillée : tout passe en lumière rouge, tes yeux gardent la nuit.' : 'Fin de la veillée.', duration: 2600 }, true);
+  const out = !document.body.classList.contains('candle-out');
+  document.body.classList.toggle('candle-out', out);
+  $('desk-candle').setAttribute('aria-pressed', String(out));
+  navigator.vibrate?.(6);
 });
 $('scope-btn').innerHTML = TELESCOPE;
 $('scope-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -285,9 +281,12 @@ function render(reasons) {
       ? `${time(events.transit.date)}<small>${num(events.transit.altitude, 0)}°</small>` : '—';
     lastFull = fullMoonOn(date);
     const v = venusAt(date, obs);
-    $('venus-text').textContent = venusShort(v);
-    $('venus-line').hidden = false;
-    $('venus-line').classList.toggle('is-dim', !v.window);
+    // Vénus brille dans le coin du ciel où elle se trouve : à l'est le matin, à l'ouest le soir
+    const vj = $('venus-jewel');
+    vj.hidden = false;
+    vj.classList.toggle('is-dim', !v.window);
+    vj.classList.toggle('is-east', !v.evening);
+    $('vj-when').textContent = v.window ? (v.evening ? `ce soir → ${time(v.window.to)}` : `ce matin dès ${time(v.window.from)}`) : 'invisible aujourd’hui';
     $('seal-btn').hidden = !lastFull;
   }
 
