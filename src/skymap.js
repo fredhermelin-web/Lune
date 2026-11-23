@@ -298,8 +298,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
     const u = P(v);
     if (u[2] > 0 && u[0] > 30 && u[0] < W - 30 && u[1] > 120 && u[1] < H - 90) return;
     const pr = project(v, b);
-    let dx = pr[0], dy = -pr[1];
-    if (pr[2] < 0) { dx = -dx; dy = -dy; }
+    let dx = pr[0], dy = -pr[1];   // la projection garde le bon côté, même derrière soi
     const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
     const k = Math.min((W / 2 - 34) / Math.abs(dx || 1e-6), (H / 2 - 120) / Math.abs(dy || 1e-6));
     const ax = cx + dx * k, ay = cy + dy * k;

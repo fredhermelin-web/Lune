@@ -597,3 +597,11 @@ body[data-view="view-sun"] .drift, body[data-view="view-sky"] .drift { display: 
   100% { opacity: 0; transform: rotate(var(--a)) translateX(260px) scaleX(1); } }
 .map-v { color: #fff1c8; font-size: 15px; }
 .signet { transition: opacity 1.6s ease; }
+.signet { position: relative; margin: 10px auto 4px; }
+.venus-line { font-size: 15.5px; white-space: nowrap; max-width: calc(100% - 20px); overflow: hidden; text-overflow: ellipsis; margin-top: 6px; }
+.cycle { margin-top: 4px; }
+/* le signet est posé sur la table, toujours au même endroit ; le contenu défile au-dessus */
+.signet { position: fixed; left: 50%; transform: translateX(-50%); margin: 0; z-index: 3;
+  bottom: calc(var(--tabs-h) + var(--safe-bottom) - 2px); height: 44px; width: min(calc(100% - 28px), 460px); }
+.signet span { line-height: 44px; }
+.view-moon { padding-bottom: 58px; }

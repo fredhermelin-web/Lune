@@ -18,7 +18,7 @@ import { initMarginalia } from './marginalia.js';
 import { renderSun } from './sun.js';
 import { INKWELL, CANDLE, TELESCOPE, openEyepiece } from './atelier.js';
 import { renderCarnet } from './carnet.js';
-import { venusAt, venusLine, renderVenus } from './venus.js';
+import { venusAt, venusShort, renderVenus } from './venus.js';
 import { initDrift } from './drift.js';
 import { initSkyMap } from './skymap.js';
 import { direction as dirName, time as fmtTime } from './format.js';
@@ -52,7 +52,7 @@ let stageSize = 300;
 
 function sizeStage() {
   // la Lune prend toute la place disponible, en gardant la courbe du cycle visible
-  const free = window.innerHeight - 600;
+  const free = window.innerHeight - 640;
   const s = Math.round(Math.max(240, Math.min(window.innerWidth * 0.88, 430, free)));
   stageSize = s;
   stage.style.width = stage.style.height = s + 'px';
@@ -207,7 +207,6 @@ $('map-names').addEventListener('click', (e) => {
   e.currentTarget.setAttribute('aria-pressed', String(on));
   skymap.setLabels(on);
 });
-$('map-red').addEventListener('click', () => setVeillee(!document.body.classList.contains('night-red')));
 document.querySelectorAll('.map-step').forEach((b) => b.addEventListener('click', () => {
   animateTo(clock.offset + Number(b.dataset.h) / 24, 350);
 }));
@@ -286,7 +285,7 @@ function render(reasons) {
       ? `${time(events.transit.date)}<small>${num(events.transit.altitude, 0)}°</small>` : '—';
     lastFull = fullMoonOn(date);
     const v = venusAt(date, obs);
-    $('venus-text').textContent = venusLine(v);
+    $('venus-text').textContent = venusShort(v);
     $('venus-line').hidden = false;
     $('venus-line').classList.toggle('is-dim', !v.window);
     $('seal-btn').hidden = !lastFull;

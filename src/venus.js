@@ -41,6 +41,12 @@ export function venusAt(date, obs) {
   };
 }
 
+/** Version courte, sur une seule ligne, pour l'écran Lune. */
+export function venusShort(v) {
+  if (!v.window) return v.elongation <= 9 ? 'Vénus est cachée par le Soleil' : 'Vénus : pas visible aujourd’hui';
+  return v.evening ? `L’étoile du berger · ce soir jusqu’à ${time(v.window.to)}` : `L’étoile du berger · ce matin dès ${time(v.window.from)}`;
+}
+
 /** La petite ligne de l'écran Lune. */
 export function venusLine(v) {
   if (!v.window) {
@@ -105,4 +111,3 @@ export function venusEqj(date, obs) {
   const e = A.Equator(V, A.MakeTime(date), obs, false, true);
   return { ra: e.ra * 15, dec: e.dec };
 }
-export const venusShort = (v) => (v.window ? `${v.evening ? 'ce soir' : 'ce matin'}, ${shortDate(v.window.from)}` : '');
