@@ -161,15 +161,17 @@ document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () 
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('is-active', v.id === t.dataset.view));
   if (activeView === 'view-sun') { sunKey = ''; drawSun(); }
   skymap.setActive(activeView === 'view-sky');
-  if (activeView === 'view-sky') { mapKey = ''; drawMap(); if (!mapCentered) { mapCentered = true; skymap.centerOnNorth(); } }
-  else if (skymap.compass) { skymap.setCompass(false); $('map-compass').setAttribute('aria-pressed', 'false'); }
+  if (activeView === 'view-sky') { mapKey = ''; drawMap(); if (!mapCentered) { mapCentered = true; setMapMode('ursa'); } }
+  else if (skymap.compass) setMapMode(null);
 }));
 
 // ---------- la carte du ciel ----------
 let mapKey = '', mapCentered = false;
 const skymap = initSkyMap($('skymap'), {
+  onDrag: () => { if (!skymap.compass) setMapMode(null); },
   onInfo: (i) => {
     if (i.compassError) {
+      setMapMode(null);
       $('map-compass').setAttribute('aria-pressed', 'false');
       $('map-info').textContent = 'Boussole indisponible sur cet appareil ou ce navigateur.';
       return;
@@ -190,14 +192,19 @@ function drawMap() {
   mapKey = key;
   skymap.setTime(date, obs);
 }
-$('map-ursa').addEventListener('click', () => skymap.centerOnNorth());
-$('map-venus').addEventListener('click', () => skymap.centerOnVenus());
-$('map-compass').addEventListener('click', (e) => {
-  const on = !skymap.compass;
-  skymap.setCompass(on);
-  e.currentTarget.setAttribute('aria-pressed', String(on));
-  if (on) $('map-info').textContent = 'Lève ton téléphone vers le ciel…';
-});
+// un seul mode à la fois : les Ourses, Vénus ou la boussole — le bouton du mode actif s'allume
+function setMapMode(mode) {
+  for (const [id, m] of [['map-ursa', 'ursa'], ['map-venus', 'venus'], ['map-compass', 'compass']]) {
+    $(id).setAttribute('aria-pressed', String(mode === m));
+  }
+  if (mode !== 'compass' && skymap.compass) skymap.setCompass(false);
+  if (mode === 'ursa') skymap.centerOnNorth();
+  if (mode === 'venus') skymap.centerOnVenus();
+  if (mode === 'compass') { skymap.setCompass(true); $('map-info').textContent = 'Lève ton téléphone vers le ciel…'; }
+}
+$('map-ursa').addEventListener('click', () => setMapMode('ursa'));
+$('map-venus').addEventListener('click', () => setMapMode('venus'));
+$('map-compass').addEventListener('click', () => setMapMode(skymap.compass ? null : 'compass'));
 $('map-names').addEventListener('click', (e) => {
   const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
   e.currentTarget.setAttribute('aria-pressed', String(on));

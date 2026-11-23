@@ -21,7 +21,7 @@ export function azAlt(v) {
   return [((Math.atan2(-v[1], v[0]) / D2R) + 360) % 360, Math.asin(Math.max(-1, Math.min(1, v[2]))) / D2R];
 }
 
-export function initSkyMap(canvas, { onInfo } = {}) {
+export function initSkyMap(canvas, { onInfo, onDrag } = {}) {
   const ctx = canvas.getContext('2d');
   const view = { az: 20, alt: 35, fov: 100, compass: false, fwd: null, up: null };
   const opts = { labels: false };
@@ -258,27 +258,45 @@ export function initSkyMap(canvas, { onInfo } = {}) {
       }
     }
 
-    // le sol, l'horizon et les points cardinaux
-    const hz = []; for (let a = 0; a <= 360; a += 1) hz.push(horVec(a, 0));
-    ctx.save();
-    ctx.beginPath();
-    let first = true;
-    const ground = [];
-    for (const v of hz) { const p = P(v); if (p[2] > -0.2) ground.push(p); }
-    if (ground.length > 1) {
-      ground.sort((u, v) => u[0] - v[0]);
-      ctx.moveTo(-50, ground[0][1]);
-      for (const p of ground) { ctx.lineTo(p[0], p[1]); first = false; }
-      ctx.lineTo(W + 50, ground[ground.length - 1][1]);
-      const below = P(horVec(view.az, -60));
-      const down = below[2] > -0.2 ? below[1] > cy : view.alt > 0;
-      ctx.lineTo(W + 50, down ? H + 50 : -50); ctx.lineTo(-50, down ? H + 50 : -50); ctx.closePath();
+    // le sol et l'horizon. En projection stéréographique, l'horizon est toujours un cercle parfait :
+    // on le calcule exactement à partir de trois de ses points (devant, à gauche, à droite), sans rayures.
+    {
+      const az0 = view.compass && view.fwd ? azAlt(view.fwd)[0] : view.az;
+      const A = P(horVec(az0, 0)), B = P(horVec(az0 + 90, 0)), C = P(horVec(az0 - 90, 0));
+      const Z = P([0, 0, 1]);
+      const d = 2 * (A[0] * (B[1] - C[1]) + B[0] * (C[1] - A[1]) + C[0] * (A[1] - B[1]));
       const gg = ctx.createLinearGradient(0, 0, 0, H);
-      gg.addColorStop(0, 'rgba(14, 11, 8, 0.86)'); gg.addColorStop(1, 'rgba(8, 6, 4, 0.95)');
-      ctx.fillStyle = gg; ctx.fill();
+      gg.addColorStop(0, 'rgba(14, 11, 8, 0.88)'); gg.addColorStop(1, 'rgba(8, 6, 4, 0.96)');
+      ctx.save();
+      ctx.beginPath();
+      if (Math.abs(d) > 1e-3) {
+        const a2 = A[0] ** 2 + A[1] ** 2, b2 = B[0] ** 2 + B[1] ** 2, c2 = C[0] ** 2 + C[1] ** 2;
+        const ux = (a2 * (B[1] - C[1]) + b2 * (C[1] - A[1]) + c2 * (A[1] - B[1])) / d;
+        const uy = (a2 * (C[0] - B[0]) + b2 * (A[0] - C[0]) + c2 * (B[0] - A[0])) / d;
+        const R = Math.hypot(A[0] - ux, A[1] - uy);
+        if (R < 1e6) {
+          const zenithInside = Math.hypot(Z[0] - ux, Z[1] - uy) < R;
+          if (zenithInside) { ctx.rect(-10, -10, W + 20, H + 20); ctx.arc(ux, uy, R, 0, 6.2832, true); }
+          else ctx.arc(ux, uy, R, 0, 6.2832);
+          ctx.fillStyle = gg; ctx.fill('evenodd');
+          ctx.beginPath(); ctx.arc(ux, uy, R, 0, 6.2832);
+          ctx.strokeStyle = 'rgba(216, 189, 134, 0.6)'; ctx.lineWidth = 1.2; ctx.stroke();
+        }
+      } else {
+        // l'horizon passe par le point opposé : c'est une droite
+        const dx = C[0] - B[0], dy = C[1] - B[1], m = Math.hypot(dx, dy) || 1;
+        const nx = -dy / m, ny = dx / m;
+        const side = Math.sign((Z[0] - B[0]) * nx + (Z[1] - B[1]) * ny) || 1;
+        const far = 4 * (W + H);
+        const p1 = [B[0] - dx / m * far, B[1] - dy / m * far], p2 = [B[0] + dx / m * far, B[1] + dy / m * far];
+        ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]);
+        ctx.lineTo(p2[0] - nx * side * far, p2[1] - ny * side * far); ctx.lineTo(p1[0] - nx * side * far, p1[1] - ny * side * far);
+        ctx.closePath(); ctx.fillStyle = gg; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]);
+        ctx.strokeStyle = 'rgba(216, 189, 134, 0.6)'; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+      ctx.restore();
     }
-    ctx.restore();
-    ctx.strokeStyle = 'rgba(216, 189, 134, 0.55)'; ctx.lineWidth = 1.1; poly(hz);
     ctx.textAlign = 'center';
     for (const [lbl, az] of CARDINALS) {
       const p = P(horVec(az, 0));
@@ -377,6 +395,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
       const [a, c] = [...pts.values()];
       view.fov = Math.max(25, Math.min(150, pinch0.fov * pinch0.d / Math.max(10, Math.hypot(a[0] - c[0], a[1] - c[1]))));
     } else if (pts.size === 1 && !view.compass) {
+      if (Math.abs(e.clientX - prev[0]) + Math.abs(e.clientY - prev[1]) > 1) onDrag?.();
       const k = view.fov / W;
       view.az = (view.az - (e.clientX - prev[0]) * k + 360) % 360;
       view.alt = Math.max(-15, Math.min(89, view.alt + (e.clientY - prev[1]) * k));

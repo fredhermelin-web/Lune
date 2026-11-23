@@ -1,6 +1,6 @@
 // Service worker : toute l'application est gardée sur le téléphone et fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour pour que le téléphone récupère les nouveaux fichiers.
-const VERSION = 'lune-v16';
+const VERSION = 'lune-v17';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'styles/main.css',
   'src/main.js', 'src/state.js', 'src/astro.js', 'src/format.js', 'src/moon-renderer.js',
