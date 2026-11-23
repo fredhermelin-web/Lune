@@ -57,13 +57,6 @@ export function initSheet(sheet, grip, { onOpen } = {}) {
   };
   grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up);
 
-  // un vrai bouton « Fermer », toujours visible
-  const btn = document.createElement('button');
-  btn.className = 'sheet-close';
-  btn.setAttribute('aria-label', 'Fermer');
-  btn.innerHTML = '<span>✕</span>';
-  btn.addEventListener('click', () => api.close());
-  sheet.appendChild(btn);
 
   // glisser vers le bas n'importe où sur la page, quand elle est en haut
   const body = sheet.querySelector('.sheet-body');
@@ -108,7 +101,7 @@ export function renderEphemeris(body, d) {
       ${row('Distance', num(Math.round(moon.distanceKm / 100) * 100) + ' km', distNote.replace(' · ', ''))}
       ${row('Constellation', CONSTELLATIONS[sky.constellation] || sky.constellation)}
     </dl>
-    <details class="fold"><summary>Toutes les éphémérides <small>hauteur, azimut, libration, Soleil…</small></summary>
+    <h4>Pour l’observateur</h4>
       <dl class="rows">
         ${row('Hauteur', `${num(alt, 0)}°`, alt >= 0 ? 'au-dessus de l’horizon' : 'sous l’horizon')}
         ${row('Azimut', `${num(sky.azimuth, 0)}°`, direction(sky.azimuth))}
@@ -117,7 +110,6 @@ export function renderEphemeris(body, d) {
         ${row('Libration', libTxt, 'la Lune nous montre un peu plus de ce bord')}
         ${row('Soleil', `${time(events.sun.rise)} — ${time(events.sun.set)}`, 'lever et coucher')}
       </dl>
-    </details>
     <h4>Prochaines phases</h4>
     <dl class="rows">${next}</dl>
     ${almanacHtml(date)}
@@ -153,7 +145,7 @@ export function renderSettings(body, onChange) {
     Calculs : astronomy-engine, Don Cross (licence MIT).<br>
     Étoiles : d3-celestial (O. Frohn) d’après la base HYG (D. Nash).<br>Recherche de commune : Base Adresse Nationale (IGN / data.gouv.fr).</p>
     <p class="motto-small">Ursine, le temps venra</p>
-    <p class="credit" style="text-align:center">Version 12</p>`;
+    <p class="credit" style="text-align:center">Version 13</p>`;
 
   body.querySelectorAll('.switch').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.key;
