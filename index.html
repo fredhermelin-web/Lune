@@ -74,14 +74,20 @@
 
     <!-- ======================= CIEL ======================= -->
     <section class="view view-sky" id="view-sky" aria-label="Le ciel">
-      <div class="soon">
-        <svg class="soon-ursa" viewBox="0 0 200 110" aria-hidden="true">
-          <path d="M18 30 L52 26 L80 36 L104 46 L118 78 L170 84 L176 50 L104 46" fill="none"/>
-          <g class="fill"><circle cx="18" cy="30" r="2.6"/><circle cx="52" cy="26" r="2.4"/><circle cx="56" cy="20" r="0.9"/><circle cx="80" cy="36" r="2.6"/><circle cx="104" cy="46" r="1.8"/><circle cx="176" cy="50" r="2.8"/><circle cx="170" cy="84" r="2.6"/><circle cx="118" cy="78" r="2.2"/></g>
-        </svg>
-        <h2>La carte du ciel</h2>
-        <p>La Grande Ourse au-dessus de ta maison, la boussole, les constellations.</p>
-        <p class="motto">« Ursine, le temps venra »</p>
+      <canvas id="skymap" class="skymap"></canvas>
+      <div class="map-top">
+        <div class="runhead">Mappa caelestis</div>
+        <p class="map-info" id="map-info">&nbsp;</p>
+        <div class="map-tools">
+          <button class="map-btn" id="map-ursa">Grande Ourse</button>
+          <button class="map-btn" id="map-compass" aria-pressed="false">Boussole</button>
+          <button class="map-btn" id="map-red" aria-pressed="false">Nuit rouge</button>
+        </div>
+      </div>
+      <div class="map-time">
+        <button class="map-step" data-h="-1">− 1 h</button>
+        <button class="map-now" id="map-now"></button>
+        <button class="map-step" data-h="1">+ 1 h</button>
       </div>
     </section>
   </main>

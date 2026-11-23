@@ -16,6 +16,8 @@ import { playRitual, showThought } from './ritual.js';
 import { saveSettings } from './state.js';
 import { initMarginalia } from './marginalia.js';
 import { renderSun } from './sun.js';
+import { initSkyMap } from './skymap.js';
+import { direction as dirName, time as fmtTime } from './format.js';
 
 const $ = (id) => document.getElementById(id);
 const DAY = 86400000;
@@ -113,7 +115,49 @@ document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () 
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('is-active', x === t));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('is-active', v.id === t.dataset.view));
   if (activeView === 'view-sun') { sunKey = ''; drawSun(); }
+  skymap.setActive(activeView === 'view-sky');
+  if (activeView === 'view-sky') { mapKey = ''; drawMap(); if (!mapCentered) { mapCentered = true; skymap.centerOnUrsa(); } }
+  else if (skymap.compass) { skymap.setCompass(false); $('map-compass').setAttribute('aria-pressed', 'false'); }
 }));
+
+// ---------- la carte du ciel ----------
+let mapKey = '', mapCentered = false;
+const skymap = initSkyMap($('skymap'), {
+  onInfo: (i) => {
+    if (i.compassError) {
+      $('map-compass').setAttribute('aria-pressed', 'false');
+      $('map-info').textContent = 'Boussole indisponible sur cet appareil ou ce navigateur.';
+      return;
+    }
+    const when = i.sunAlt > -6 ? ' <i>— il fait jour, elle t’attend ce soir</i>' : '';
+    $('map-info').innerHTML = `La Grande Ourse : <b>${dirName(i.ursaAz)}</b>, ${Math.round(i.ursaAlt)}° de hauteur${when}`;
+  },
+});
+function drawMap() {
+  if (activeView !== 'view-sky' || !sky.ready) return;
+  const date = clock.date;
+  const key = `${Math.floor(date.getTime() / 30000)}|${place.lat}|${place.lon}`;
+  $('map-now').innerHTML = `${fmtTime(date)}<small>${Math.abs(clock.offset) < 1e-6 ? 'maintenant' : longDate(date)}</small>`;
+  if (key === mapKey) return;
+  mapKey = key;
+  skymap.setTime(date, obs);
+}
+$('map-ursa').addEventListener('click', () => skymap.centerOnUrsa());
+$('map-compass').addEventListener('click', (e) => {
+  const on = !skymap.compass;
+  skymap.setCompass(on);
+  e.currentTarget.setAttribute('aria-pressed', String(on));
+  if (on) $('map-info').textContent = 'Lève ton téléphone vers le ciel…';
+});
+$('map-red').addEventListener('click', (e) => {
+  const on = !document.body.classList.contains('night-red');
+  document.body.classList.toggle('night-red', on);
+  e.currentTarget.setAttribute('aria-pressed', String(on));
+});
+document.querySelectorAll('.map-step').forEach((b) => b.addEventListener('click', () => {
+  animateTo(clock.offset + Number(b.dataset.h) / 24, 350);
+}));
+$('map-now').addEventListener('click', () => animateTo(0, 500));
 
 // ---------- le Soleil ----------
 let sunKey = '';
@@ -199,6 +243,7 @@ function render(reasons) {
 
   const moving = reasons.has('scrub') || reasons.has('anim');
   if (!moving) drawSun();
+  drawMap();
   // l'encre sèche quand le temps s'arrête : les annotations reviennent à l'arrêt
   stage.classList.toggle('is-moving', moving);
   if (!moving) updateMargin();

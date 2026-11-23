@@ -1,11 +1,11 @@
 // Service worker : toute l'application est gardée sur le téléphone et fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour pour que le téléphone récupère les nouveaux fichiers.
-const VERSION = 'lune-v8';
+const VERSION = 'lune-v9';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'styles/main.css',
   'src/main.js', 'src/state.js', 'src/astro.js', 'src/format.js', 'src/moon-renderer.js',
   'src/scrub.js', 'src/timeline.js', 'src/curve.js', 'src/phase-icon.js', 'src/panels.js',
-  'src/sky.js', 'src/sky-renderer.js', 'src/nocturlabe.js', 'src/secrets.js', 'src/thoughts.js', 'src/ritual.js', 'src/marginalia.js', 'src/almanac.js', 'src/sun.js',
+  'src/sky.js', 'src/sky-renderer.js', 'src/nocturlabe.js', 'src/secrets.js', 'src/thoughts.js', 'src/ritual.js', 'src/marginalia.js', 'src/almanac.js', 'src/sun.js', 'src/skymap.js',
   'vendor/astronomy.js', 'data/sky.json',
   'textures/moon_color_1k.jpg', 'textures/moon_relief_1k.webp', 'textures/moon_color_4k.jpg', 'textures/moon_relief_4k.webp',
   'fonts/eb-garamond-400-normal.woff2', 'fonts/eb-garamond-500-normal.woff2', 'fonts/eb-garamond-400-italic.woff2',
