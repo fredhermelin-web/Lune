@@ -27,14 +27,18 @@ let openSheet = null;
 export function initSheet(sheet, grip, { onOpen } = {}) {
   const api = {
     open() {
-      if (openSheet && openSheet !== api) openSheet.close();
+      if (openSheet && openSheet !== api) openSheet.close(true);
       openSheet = api;
+      // le bouton « retour » d'Android ferme la page au lieu de quitter l'application
+      if (!history.state?.sheet) history.pushState({ sheet: true }, '');
       onOpen?.();
       sheet.style.transform = '';
       sheet.classList.add('is-open'); sheet.setAttribute('aria-hidden', 'false');
       scrim.classList.add('is-open');
     },
-    close() {
+    close(fromSwitch) {
+      if (!sheet.classList.contains('is-open')) return;
+      if (!fromSwitch && history.state?.sheet) { history.back(); return; }   // popstate refermera
       sheet.style.transform = '';
       sheet.classList.remove('is-open'); sheet.setAttribute('aria-hidden', 'true');
       scrim.classList.remove('is-open');
@@ -52,9 +56,34 @@ export function initSheet(sheet, grip, { onOpen } = {}) {
     if (dy > 70 || Math.abs(dy) < 4) api.close(); else sheet.style.transform = '';
   };
   grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up);
+
+  // un vrai bouton « Fermer », toujours visible
+  const btn = document.createElement('button');
+  btn.className = 'sheet-close';
+  btn.setAttribute('aria-label', 'Fermer');
+  btn.innerHTML = '<span>✕</span>';
+  btn.addEventListener('click', () => api.close());
+  sheet.appendChild(btn);
+
+  // glisser vers le bas n'importe où sur la page, quand elle est en haut
+  const body = sheet.querySelector('.sheet-body');
+  let ty0 = null, tdy = 0;
+  body.addEventListener('touchstart', (e) => { ty0 = body.scrollTop <= 0 ? e.touches[0].clientY : null; tdy = 0; }, { passive: true });
+  body.addEventListener('touchmove', (e) => {
+    if (ty0 === null) return;
+    tdy = e.touches[0].clientY - ty0;
+    if (tdy > 0) { sheet.style.transition = 'none'; sheet.style.transform = `translateY(${tdy}px)`; } else ty0 = null;
+  }, { passive: true });
+  body.addEventListener('touchend', () => {
+    if (ty0 === null) return;
+    sheet.style.transition = '';
+    if (tdy > 110) api.close(); else sheet.style.transform = '';
+    ty0 = null;
+  });
   return api;
 }
 scrim.addEventListener('click', () => openSheet?.close());
+window.addEventListener('popstate', () => { if (openSheet) openSheet.close(true); });
 
 const row = (label, value, small) =>
   `<div class="row"><dt>${label}</dt><dd>${value}${small ? `<small>${small}</small>` : ''}</dd></div>`;
@@ -79,7 +108,7 @@ export function renderEphemeris(body, d) {
       ${row('Distance', num(Math.round(moon.distanceKm / 100) * 100) + ' km', distNote.replace(' · ', ''))}
       ${row('Constellation', CONSTELLATIONS[sky.constellation] || sky.constellation)}
     </dl>
-    <details class="fold"><summary>Plus de détails</summary>
+    <details class="fold"><summary>Toutes les éphémérides <small>hauteur, azimut, libration, Soleil…</small></summary>
       <dl class="rows">
         ${row('Hauteur', `${num(alt, 0)}°`, alt >= 0 ? 'au-dessus de l’horizon' : 'sous l’horizon')}
         ${row('Azimut', `${num(sky.azimuth, 0)}°`, direction(sky.azimuth))}
@@ -124,7 +153,7 @@ export function renderSettings(body, onChange) {
     Calculs : astronomy-engine, Don Cross (licence MIT).<br>
     Étoiles : d3-celestial (O. Frohn) d’après la base HYG (D. Nash).<br>Recherche de commune : Base Adresse Nationale (IGN / data.gouv.fr).</p>
     <p class="motto-small">Ursine, le temps venra</p>
-    <p class="credit" style="text-align:center">Version 11 · le carnet</p>`;
+    <p class="credit" style="text-align:center">Version 12</p>`;
 
   body.querySelectorAll('.switch').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.key;

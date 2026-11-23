@@ -56,7 +56,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .ritual { position: fixed; inset: 0; z-index: 10; background: #000; transition: background 2s ease, opacity .9s ease; }
 .ritual.is-on { background: rgba(0, 0, 0, 0); }
 .ritual.is-gone { opacity: 0; pointer-events: none; }
-body.in-ritual :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .tabs, .noct-btn, .seal-btn, .today) { opacity: 0; }
+body.in-ritual :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .tabs, .noct-btn, .seal-btn, .scope-btn, .today) { opacity: 0; }
 :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .tabs, .noct-btn) { transition: opacity 1.6s ease; }
 .astrolabe { position: absolute; left: var(--cx, 50%); top: var(--cy, 45%); margin: calc(min(92vw, 440px) / -2) 0 0 calc(min(92vw, 440px) / -2);
   width: min(92vw, 440px); height: min(92vw, 440px); overflow: visible; opacity: 0;
@@ -550,3 +550,8 @@ body.in-scope :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .noc
 .note-del { color: #8a6a3c; font-size: 14px; padding: 4px 8px; }
 .note-body { font-family: var(--serif); font-size: 19px; line-height: 1.5; color: #1f160c; margin: 4px 0; white-space: pre-wrap; }
 .note-meta { margin: 0; font-size: 13px; color: #5c4630; }
+.scope-btn { transition: opacity 1.6s ease; }
+.sheet-close { position: absolute; top: 8px; right: 10px; z-index: 3; width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; background: rgba(20, 26, 36, .85); border: 1px solid var(--line-strong); color: var(--moon); font-size: 18px; }
+.sheet.book .sheet-close { background: #a8321c; border-color: #7e2414; color: #fbf3e2; box-shadow: 0 3px 10px rgba(60, 20, 5, .35); }
+.fold summary small { display: block; font-size: 14px; font-style: normal; font-family: var(--sans); color: #6b5338; margin: 2px 0 0 22px; }
