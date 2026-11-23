@@ -61,6 +61,15 @@ export function initSkyMap(canvas, { onInfo } = {}) {
     draw();
   }
 
+  function centerOnNorth() {
+    animateView(0, 36, 115);
+  }
+  function centerOnVenus() {
+    const ven = state?.planets.find((x) => x.name === 'Vénus');
+    if (!ven) return;
+    const [az, alt] = azAlt(ven.v);
+    animateView(az, Math.max(15, alt + 10), 90);
+  }
   function centerOnUrsa() {
     if (!state) return;
     const [az, alt] = azAlt(state.ursa);
@@ -128,7 +137,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
     ctx.strokeStyle = 'rgba(165, 182, 212, 0.22)'; ctx.lineWidth = 0.9;
     ctx.beginPath();
     for (const [id, segs] of Object.entries(sky.lines)) {
-      if (id === 'UMa') continue;
+      if (id === 'UMa' || id === 'UMi') continue;
       for (const seg of segs) {
         let prev = null;
         for (const v of seg) {
@@ -147,6 +156,22 @@ export function initSkyMap(canvas, { onInfo } = {}) {
       for (const v of seg) { const p = P(state.toHor(v)); if (prev && on(p, 200) && on(prev, 200)) { ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); } prev = p; }
     }
     ctx.stroke();
+    // la Petite Ourse, en or aussi : la Polaire au bout de sa queue
+    ctx.strokeStyle = 'rgba(240, 207, 142, 0.7)'; ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    for (const seg of sky.lines.UMi || []) {
+      let prev = null;
+      for (const v of seg) { const p = P(state.toHor(v)); if (prev && on(p, 200) && on(prev, 200)) { ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); } prev = p; }
+    }
+    ctx.stroke();
+    // les deux gardes : de Merak à Dubhe, et cinq fois plus loin, la Polaire
+    {
+      const a = P(state.toHor(specialVec('merak'))), c = P(state.toHor(specialVec('polaris')));
+      if (on(a, 400) && on(c, 400)) {
+        ctx.save(); ctx.setLineDash([3, 5]); ctx.strokeStyle = 'rgba(240, 207, 142, 0.45)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(c[0], c[1]); ctx.stroke(); ctx.restore();
+      }
+    }
     ctx.strokeStyle = 'rgba(240, 207, 142, 0.85)'; ctx.lineWidth = 1.6;
     ctx.beginPath();
     for (const [a, c] of DIPPER_LINES) {
@@ -199,10 +224,13 @@ export function initSkyMap(canvas, { onInfo } = {}) {
     {
       const p = P(state.ursa);
       if (on(p, -20)) label('Grande Ourse', p[0], p[1] + 34, '500 12px Inter, sans-serif', 'rgba(240, 207, 142, 0.95)', 'center', true);
+      const lb = sky.labels.find((l) => l.id === 'UMi');
+      if (lb) { const q = P(state.toHor(lb.v)); if (on(q, -20)) label('Petite Ourse', q[0], q[1] + 22, '500 12px Inter, sans-serif', 'rgba(240, 207, 142, 0.9)', 'center'); }
     }
     // la Lune et les planètes
     drawMoon(P, on, label);
     for (const pl of state.planets) {
+      if (pl.name === 'Vénus') { drawVenus(P, on, label, pl); continue; }
       const p = P(pl.v);
       if (!on(p, 10)) continue;
       const r = Math.max(2.2, 3.8 - pl.mag * 0.35);
@@ -260,22 +288,52 @@ export function initSkyMap(canvas, { onInfo } = {}) {
       ctx.fillText(lbl, p[0], p[1] + 20);
     }
 
-    // si l'Ourse est hors du champ : une flèche pour la retrouver
-    const u = P(state.ursa);
-    if (!(u[2] > 0 && u[0] > 30 && u[0] < W - 30 && u[1] > 70 && u[1] < H - 90)) {
-      const pr = project(state.ursa, b);
-      let dx = pr[0], dy = -pr[1];
-      if (pr[2] < 0) { dx = -dx; dy = -dy; }
-      const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
-      const k = Math.min((W / 2 - 34) / Math.abs(dx || 1e-6), (H / 2 - 110) / Math.abs(dy || 1e-6));
-      const ax = cx + dx * k, ay = cy + dy * k;
-      ctx.save(); ctx.translate(ax, ay); ctx.rotate(Math.atan2(dy, dx));
-      ctx.fillStyle = '#e8c98e';
-      ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-6, -7); ctx.lineTo(-2, 0); ctx.lineTo(-6, 7); ctx.closePath(); ctx.fill();
-      ctx.restore();
-      ctx.font = 'italic 14px "EB Garamond", serif'; ctx.fillStyle = '#e8c98e';
-      ctx.textAlign = dx > 0.3 ? 'right' : dx < -0.3 ? 'left' : 'center';
-      ctx.fillText('la Grande Ourse', ax - dx * 18, ay - dy * 18 + 4);
+    // ce qu'on cherche est hors du champ : une flèche dorée au bord
+    edgeArrow(state.ursa, 'la Grande Ourse', b, P, cx, cy);
+    const ven = state.planets.find((x) => x.name === 'Vénus');
+    if (ven && ven.v[2] > -0.05) edgeArrow(ven.v, 'Vénus', b, P, cx, cy, '#fff1c8');
+  }
+
+  function edgeArrow(v, text, b, P, cx, cy, color = '#e8c98e') {
+    const u = P(v);
+    if (u[2] > 0 && u[0] > 30 && u[0] < W - 30 && u[1] > 120 && u[1] < H - 90) return;
+    const pr = project(v, b);
+    let dx = pr[0], dy = -pr[1];
+    if (pr[2] < 0) { dx = -dx; dy = -dy; }
+    const m = Math.hypot(dx, dy) || 1; dx /= m; dy /= m;
+    const k = Math.min((W / 2 - 34) / Math.abs(dx || 1e-6), (H / 2 - 120) / Math.abs(dy || 1e-6));
+    const ax = cx + dx * k, ay = cy + dy * k;
+    ctx.save(); ctx.translate(ax, ay); ctx.rotate(Math.atan2(dy, dx));
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-6, -7); ctx.lineTo(-2, 0); ctx.lineTo(-6, 7); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.font = 'italic 16px "EB Garamond", serif'; ctx.fillStyle = color;
+    ctx.textAlign = dx > 0.3 ? 'right' : dx < -0.3 ? 'left' : 'center';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(4, 8, 20, .85)';
+    ctx.strokeText(text, ax - dx * 20, ay - dy * 20 + 4);
+    ctx.fillText(text, ax - dx * 20, ay - dy * 20 + 4);
+  }
+
+  // Vénus : un joyau, avec sa lueur et ses quatre rayons
+  function drawVenus(P, on, label, pl) {
+    const p = P(pl.v);
+    if (!on(p, 30)) return;
+    const vis = pl.v[2] > 0;
+    ctx.save();
+    ctx.globalAlpha = vis ? 1 : 0.35;
+    const g = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], 26);
+    g.addColorStop(0, 'rgba(255, 246, 215, .9)'); g.addColorStop(0.25, 'rgba(255, 220, 150, .35)'); g.addColorStop(1, 'rgba(255, 200, 120, 0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p[0], p[1], 26, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 244, 210, .8)'; ctx.lineWidth = 1;
+    const tw = 0.85 + 0.15 * Math.sin(performance.now() / 600);
+    for (const [dx, dy, l] of [[1, 0, 18], [0, 1, 18], [0.7, 0.7, 9], [0.7, -0.7, 9]]) {
+      ctx.beginPath(); ctx.moveTo(p[0] - dx * l * tw, p[1] - dy * l * tw); ctx.lineTo(p[0] + dx * l * tw, p[1] + dy * l * tw); ctx.stroke();
+    }
+    ctx.fillStyle = '#fffaf0'; ctx.beginPath(); ctx.arc(p[0], p[1], 3.6, 0, 6.2832); ctx.fill();
+    ctx.restore();
+    if (vis) {
+      label('Vénus', p[0] + 14, p[1] - 8, 'italic 18px "EB Garamond", serif', '#fff1c8', 'left', true);
+      label('l’étoile du berger', p[0] + 14, p[1] + 10, 'italic 13px "EB Garamond", serif', 'rgba(255, 236, 190, .8)', 'left', true);
     }
   }
 
@@ -365,7 +423,7 @@ export function initSkyMap(canvas, { onInfo } = {}) {
   }
 
   return {
-    setTime, centerOnUrsa, setCompass, resize,
+    setTime, centerOnUrsa, centerOnNorth, centerOnVenus, setCompass, resize,
     setLabels(v) { opts.labels = v; draw(); },
     setActive(v) { active = v; if (v) resize(); },
     get compass() { return view.compass; },

@@ -55,6 +55,7 @@
         <h1 class="phase-name" id="phase-name">&nbsp;</h1>
         <p class="phase-sub"><span id="phase-pct"></span><span class="dot">·</span><span id="phase-age"></span></p>
         <p class="phase-when" id="phase-when"></p>
+        <button class="venus-line" id="venus-line" hidden><span class="vstar">✦</span> <span id="venus-text"></span></button>
       </div>
 
       <div class="riseset">
@@ -67,9 +68,8 @@
         <svg id="curve" class="curve" preserveAspectRatio="none"></svg>
       </div>
 
-      <button class="more" id="more-btn" aria-expanded="false">
-        <span>Éphémérides</span>
-        <svg viewBox="0 0 16 10" class="ico"><path d="M2 8l6-6 6 6"/></svg>
+      <button class="signet" id="more-btn" aria-expanded="false" aria-label="Ouvrir les éphémérides">
+        <span>❧ &nbsp;Éphémérides&nbsp; ❧</span>
       </button>
     </section>
 
@@ -83,7 +83,8 @@
         <div class="runhead">Mappa caelestis</div>
         <p class="map-info" id="map-info">&nbsp;</p>
         <div class="map-tools">
-          <button class="map-btn" id="map-ursa">Grande Ourse</button>
+          <button class="map-btn" id="map-ursa">Les Ourses</button>
+          <button class="map-btn map-venus" id="map-venus">✦ Vénus</button>
           <button class="map-btn" id="map-compass" aria-pressed="false">Boussole</button>
           <button class="map-btn" id="map-names" aria-pressed="false">Noms</button>
           <button class="map-btn" id="map-red" aria-pressed="false">Nuit rouge</button>
@@ -126,6 +127,12 @@
   <div class="sheet book" id="carnet" aria-hidden="true">
     <div class="sheet-grip" id="carnet-grip"><span></span></div>
     <div class="sheet-body" id="carnet-body"></div>
+  </div>
+
+  <!-- Vénus -->
+  <div class="sheet book" id="venus" aria-hidden="true">
+    <div class="sheet-grip" id="venus-grip"><span></span></div>
+    <div class="sheet-body" id="venus-body"></div>
   </div>
 
   <!-- Page secrète -->

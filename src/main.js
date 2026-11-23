@@ -18,6 +18,8 @@ import { initMarginalia } from './marginalia.js';
 import { renderSun } from './sun.js';
 import { INKWELL, CANDLE, TELESCOPE, openEyepiece } from './atelier.js';
 import { renderCarnet } from './carnet.js';
+import { venusAt, venusLine, renderVenus } from './venus.js';
+import { initDrift } from './drift.js';
 import { initSkyMap } from './skymap.js';
 import { direction as dirName, time as fmtTime } from './format.js';
 
@@ -26,6 +28,7 @@ const DAY = 86400000;
 
 // ---------- le ciel et la Lune ----------
 const skyR = initSkyRenderer($('sky'), $('twinkles'));
+initDrift(document.querySelector('.sky'));
 const UI_ZONES = ['.topbar', '.month', '.strip', '.stage', '.phase', '.riseset', '.cycle', '.more', '.tabs'];
 skyR.configure({
   exclusions: () => UI_ZONES.map((q) => document.querySelector(q)?.getBoundingClientRect()).filter(Boolean),
@@ -49,7 +52,7 @@ let stageSize = 300;
 
 function sizeStage() {
   // la Lune prend toute la place disponible, en gardant la courbe du cycle visible
-  const free = window.innerHeight - 556;
+  const free = window.innerHeight - 600;
   const s = Math.round(Math.max(240, Math.min(window.innerWidth * 0.88, 430, free)));
   stageSize = s;
   stage.style.width = stage.style.height = s + 'px';
@@ -96,6 +99,7 @@ const settingsSheet = initSheet($('settings'), $('settings-grip'), { onOpen: () 
 const ursaPanel = initSheet($('ursa'), $('ursa-grip'), { onOpen: () => openUrsa() });
 const secretPanel = initSheet($('secret'), $('secret-grip'), { onOpen: () => lastFull && secretPage($('secret-body'), lastFull) });
 $('more-btn').addEventListener('click', () => sheet.open());
+$('phase-name').addEventListener('click', () => sheet.open());
 $('settings-btn').addEventListener('click', () => settingsSheet.open());
 $('place-btn').addEventListener('click', () => settingsSheet.open());
 $('today-btn').addEventListener('click', () => animateTo(0, 600));
@@ -115,6 +119,8 @@ const carnetPanel = initSheet($('carnet'), $('carnet-grip'), {
   }),
 });
 $('desk-ink').addEventListener('click', () => carnetPanel.open());
+const venusPanel = initSheet($('venus'), $('venus-grip'), { onOpen: () => renderVenus($('venus-body'), venusAt(clock.date, obs), clock.date) });
+$('venus-line').addEventListener('click', () => venusPanel.open());
 // la bougie : la veillée, lumière rouge pour garder les yeux de la nuit
 function setVeillee(on) {
   document.body.classList.toggle('night-red', on);
@@ -159,7 +165,7 @@ document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () 
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('is-active', v.id === t.dataset.view));
   if (activeView === 'view-sun') { sunKey = ''; drawSun(); }
   skymap.setActive(activeView === 'view-sky');
-  if (activeView === 'view-sky') { mapKey = ''; drawMap(); if (!mapCentered) { mapCentered = true; skymap.centerOnUrsa(); } }
+  if (activeView === 'view-sky') { mapKey = ''; drawMap(); if (!mapCentered) { mapCentered = true; skymap.centerOnNorth(); } }
   else if (skymap.compass) { skymap.setCompass(false); $('map-compass').setAttribute('aria-pressed', 'false'); }
 }));
 
@@ -173,7 +179,10 @@ const skymap = initSkyMap($('skymap'), {
       return;
     }
     const when = i.sunAlt > -6 ? ' <i>— il fait jour, elle t’attend ce soir</i>' : '';
-    $('map-info').innerHTML = `La Grande Ourse : <b>${dirName(i.ursaAz)}</b>, ${Math.round(i.ursaAlt)}° de hauteur${when}`;
+    const v = venusAt(clock.date, obs);
+    const vtxt = v.altitude > 0 ? `✦ Vénus : <b>${dirName(v.azimuth)}</b>, ${Math.round(v.altitude)}°`
+      : v.rise && v.rise > clock.date ? `✦ Vénus se lèvera à ${fmtTime(v.rise)}` : '✦ Vénus est sous l’horizon';
+    $('map-info').innerHTML = `La Grande Ourse : <b>${dirName(i.ursaAz)}</b>, ${Math.round(i.ursaAlt)}° de hauteur${when}<br><span class="map-v">${vtxt}</span>`;
   },
 });
 function drawMap() {
@@ -185,7 +194,8 @@ function drawMap() {
   mapKey = key;
   skymap.setTime(date, obs);
 }
-$('map-ursa').addEventListener('click', () => skymap.centerOnUrsa());
+$('map-ursa').addEventListener('click', () => skymap.centerOnNorth());
+$('map-venus').addEventListener('click', () => skymap.centerOnVenus());
 $('map-compass').addEventListener('click', (e) => {
   const on = !skymap.compass;
   skymap.setCompass(on);
@@ -275,6 +285,10 @@ function render(reasons) {
     $('transit').innerHTML = events.transit
       ? `${time(events.transit.date)}<small>${num(events.transit.altitude, 0)}°</small>` : '—';
     lastFull = fullMoonOn(date);
+    const v = venusAt(date, obs);
+    $('venus-text').textContent = venusLine(v);
+    $('venus-line').hidden = false;
+    $('venus-line').classList.toggle('is-dim', !v.window);
     $('seal-btn').hidden = !lastFull;
   }
 
