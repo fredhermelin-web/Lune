@@ -659,3 +659,76 @@ body.candle-out .candle { opacity: 0 !important; animation: none; transition: op
 .map-btn { padding: 6px 9px; font-size: 14px; gap: 5px; }
 .map-btn#map-ursa .mi { width: 19px; }
 .map-tools { flex-wrap: nowrap; }
+
+/* =====================================================================
+   LE CABINET DE GALILÉE
+   ===================================================================== */
+.view.view-cabinet { padding: 0; overflow: hidden; background: #120b06; }
+.cab { position: absolute; inset: 0; overflow: hidden; }
+.cab-room, .cab-sky, .cab-spots { position: absolute; will-change: transform; transition: transform .25s linear; }
+.cab-room { user-select: none; -webkit-user-drag: none; pointer-events: none; transition: transform .25s linear, filter 1.2s ease; }
+.cab-sky { z-index: 0; }
+.cab-room { z-index: 1; }
+.cab-spots { inset: 0; z-index: 3; }
+/* la lumière de la bougie qui respire sur le bois */
+.cab-light { position: absolute; inset: 0; z-index: 2; pointer-events: none; mix-blend-mode: soft-light;
+  background: radial-gradient(circle at var(--fx, 60%) var(--fy, 60%), rgba(255, 200, 120, .55) 0, rgba(255, 170, 80, .18) 28%, transparent 60%);
+  animation: cabbreath 4.6s ease-in-out infinite; }
+@keyframes cabbreath { 0%, 100% { opacity: .9; } 30% { opacity: .7; } 55% { opacity: 1; } 80% { opacity: .78; } }
+.cab-flame { position: absolute; z-index: 2; width: 90px; height: 90px; margin: -45px 0 0 -45px; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 236, 180, .55) 0, rgba(255, 190, 100, .22) 35%, transparent 70%);
+  mix-blend-mode: screen; animation: halo 2.7s ease-in-out infinite; }
+/* la veillée : la pièce s'assombrit, seule la bougie éclaire */
+body.cab-veillee .cab-room { filter: brightness(.5) saturate(1.1); }
+body.cab-veillee .cab-light { mix-blend-mode: screen; opacity: .9; }
+body.cab-veillee .cab-flame { width: 180px; height: 180px; margin: -90px 0 0 -90px; }
+.cab-title { position: absolute; z-index: 4; top: calc(var(--safe-top) + 10px); left: 0; right: 0; text-align: center; pointer-events: none;
+  font-family: var(--serif); font-variant: small-caps; letter-spacing: .32em; font-size: 15px; color: #f6e2b4;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, .85); }
+.cab-hint { position: absolute; z-index: 4; left: 0; right: 0; bottom: 14px; margin: 0; text-align: center; pointer-events: none;
+  font-family: var(--serif); font-style: italic; font-size: 17px; color: #fbe7b8; text-shadow: 0 1px 6px rgba(0, 0, 0, .9);
+  animation: hint 6s ease forwards; }
+@keyframes hint { 0%, 10% { opacity: 0; } 25%, 75% { opacity: 1; } 100% { opacity: 0; } }
+/* chaque objet luit doucement de temps en temps, pour dire qu'on peut le toucher */
+.cab-spot { position: absolute; border-radius: 18px; background: none; border: 0; padding: 0; cursor: pointer; }
+.cab-spot::after { content: ''; position: absolute; inset: 8%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 226, 160, .35) 0, rgba(255, 210, 130, .12) 45%, transparent 70%);
+  opacity: 0; animation: spotglow 10s ease-in-out var(--d, 0s) infinite; mix-blend-mode: screen; }
+@keyframes spotglow { 0%, 82%, 100% { opacity: 0; } 88% { opacity: 1; } 94% { opacity: .2; } }
+.cab-spot.is-touched::after { animation: spottouch .9s ease-out forwards; }
+@keyframes spottouch { 0% { opacity: 0; transform: scale(.8); } 30% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0; transform: scale(1.15); } }
+.cab-label { position: absolute; z-index: 5; transform: translate(-50%, -100%); pointer-events: none; white-space: nowrap;
+  padding: 8px 14px; border-radius: 14px; background: rgba(20, 12, 6, .72); border: 1px solid rgba(240, 207, 142, .45);
+  font-family: var(--serif); font-style: italic; font-size: 19px; color: #fbe7b8; opacity: 0; transition: opacity .4s; }
+.cab-label span { display: block; -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 60%); mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+  -webkit-mask-size: 260% 100%; mask-size: 260% 100%; -webkit-mask-position: 100% 0; mask-position: 100% 0;
+  transition: -webkit-mask-position .9s ease, mask-position .9s ease; }
+.cab-label.is-in { opacity: 1; }
+.cab-label.is-in span { -webkit-mask-position: 0 0; mask-position: 0 0; }
+.cab-label.is-out { opacity: 0; transition-duration: .6s; }
+body[data-view="view-cabinet"] .candle, body[data-view="view-cabinet"] .sky { display: none; }
+
+/* =====================================================================
+   LA BARRE DU BAS : quatre médaillons de laiton, grands et lisibles
+   ===================================================================== */
+.desk-obj { display: none !important; }
+.tabs { padding: 0 6px var(--safe-bottom); grid-template-columns: repeat(4, 1fr);
+  background:
+    linear-gradient(180deg, rgba(255, 226, 170, .55) 0, rgba(255, 226, 170, .55) 1px, transparent 1px),
+    repeating-linear-gradient(91deg, rgba(0,0,0,0) 0 9px, rgba(60,30,10,.16) 9px 10px, rgba(255,220,170,.05) 10px 19px),
+    linear-gradient(180deg, #7a4f2b 0%, #5c391c 50%, #432812 100%); }
+.tabs::after { background: rgba(255, 226, 170, .25); }
+.tab { gap: 3px; color: #f3e3c3; }
+.tab .ico { width: 34px; height: 34px; padding: 7px; border-radius: 50%; color: #4a2c10; stroke-width: 1.5;
+  background: radial-gradient(circle at 35% 30%, #fff2cf, #e2bd78 45%, #a77b3c 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .45), inset 0 -2px 3px rgba(90, 55, 15, .4); }
+.tab .ico .fill { fill: #4a2c10; }
+.tab span { font-family: var(--serif); font-size: 13px; letter-spacing: .06em; text-transform: none; color: #f3e3c3; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.tab.is-active { text-shadow: none; }
+.tab.is-active .ico { filter: none; box-shadow: 0 0 14px rgba(255, 214, 140, .95), 0 0 4px rgba(255, 240, 200, 1), inset 0 -2px 3px rgba(90, 55, 15, .3);
+  background: radial-gradient(circle at 35% 30%, #fffbe9, #f3d391 45%, #c79a52 100%); }
+.tab.is-active span { color: #fff6dc; font-weight: 500; }
+:root { --tabs-h: 68px; }
+.tab span { font-family: var(--sans); font-size: 11.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+  color: #fff3d6; text-shadow: 0 1px 1px rgba(0, 0, 0, .75); }
+.tab.is-active span { color: #ffffff; }

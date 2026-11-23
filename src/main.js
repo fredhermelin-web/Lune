@@ -18,6 +18,8 @@ import { initMarginalia } from './marginalia.js';
 import { renderSun } from './sun.js';
 import { INKWELL, CANDLE, TELESCOPE, openEyepiece } from './atelier.js';
 import { renderCarnet } from './carnet.js';
+import { initCabinet } from './cabinet.js';
+import { sunAltitude } from './astro.js';
 import { venusAt, renderVenus } from './venus.js';
 import { initDrift } from './drift.js';
 import { initSkyMap } from './skymap.js';
@@ -131,8 +133,8 @@ $('desk-candle').addEventListener('click', () => {
 });
 $('scope-btn').innerHTML = TELESCOPE;
 $('scope-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
-$('scope-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
+$('scope-btn').addEventListener('click', (e) => { e.stopPropagation(); openScope(); });
+function openScope() {
   if (!renderer || !moonNow) return;
   const r = stage.getBoundingClientRect();
   const radius = renderer.radiusFor(moonNow.distanceKm) * r.width / 2;
@@ -144,7 +146,7 @@ $('scope-btn').addEventListener('click', (e) => {
     document.body.classList.remove('in-scope');
     if (!wasGalileo) renderer.setStyle(0, true);
   });
-});
+}
 
 function openUrsa() {
   if (!sky.ready) return;
@@ -160,10 +162,55 @@ document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () 
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('is-active', x === t));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('is-active', v.id === t.dataset.view));
   if (activeView === 'view-sun') { sunKey = ''; drawSun(); }
+  cabinet.setActive(activeView === 'view-cabinet');
+  if (activeView === 'view-cabinet') { cabKey = ''; drawCabinet(); }
   skymap.setActive(activeView === 'view-sky');
   if (activeView === 'view-sky') { mapKey = ''; drawMap(); if (!mapCentered) { mapCentered = true; setMapMode('ursa'); } }
   else if (skymap.compass) setMapMode(null);
 }));
+
+function showView(id) { document.querySelector(`.tab[data-view="${id}"]`)?.click(); }
+
+// ---------- le cabinet de Galilée ----------
+let cabKey = '';
+const QUOTES_G = [
+  'La philosophie est écrite dans ce grand livre qui se tient constamment ouvert devant nos yeux : l’univers.',
+  'Mesure ce qui est mesurable, et rends mesurable ce qui ne l’est pas.',
+  'Le Soleil, avec toutes ces planètes qui tournent autour de lui, mûrit encore une grappe de raisin comme s’il n’avait rien d’autre à faire.',
+  'On ne peut rien enseigner à un homme ; on peut seulement l’aider à le trouver en lui-même.',
+  'Et pourtant, elle tourne.',
+];
+const cabinet = initCabinet($('cab'), {
+  onAction: (id) => {
+    if (id === 'scope') { showView('view-moon'); setTimeout(openScope, 700); }
+    else if (id === 'window') showView('view-sky');
+    else if (id === 'books') sheet.open();
+    else if (id === 'noct') ursaPanel.open();
+    else if (id === 'book' || id === 'quill') carnetPanel.open();
+    else if (id === 'sphere') venusPanel.open();
+    else if (id === 'sheets') { showView('view-moon'); if (!settings.galileo) setTimeout(toggleGalileo, 500); }
+    else if (id === 'candle') document.body.classList.toggle('cab-veillee');
+    else if (id === 'portrait') {
+      document.querySelectorAll('.thought').forEach((t) => t.remove());
+      showThought({ text: `« ${QUOTES_G[Math.floor(Math.random() * QUOTES_G.length)]} »`, author: 'Galileo Galilei', duration: 7000 }, true);
+    }
+  },
+});
+function drawCabinet() {
+  if (activeView !== 'view-cabinet') return;
+  const date = clock.date;
+  const key = `${Math.floor(date.getTime() / 60000)}|${place.lat}|${place.lon}`;
+  if (key === cabKey) return;
+  cabKey = key;
+  const m = moonAt(date, obs, settings.orientation);
+  const v = venusAt(date, obs);
+  const now = date.getTime();
+  cabinet.setSky({
+    sunAlt: sunAltitude(date, obs), moonAlt: moonSky(date, obs).altitude, fraction: m.fraction, waxing: m.waxing,
+    venusVisible: v.altitude > 3 && (!v.window || (now >= v.window.from.getTime() - 3600000 && now <= v.window.to.getTime() + 3600000)),
+  });
+}
+window.addEventListener('resize', () => { if (activeView === 'view-cabinet') cabinet.layout(); });
 
 // ---------- la carte du ciel ----------
 let mapKey = '', mapCentered = false;
@@ -305,7 +352,7 @@ function render(reasons) {
   }
 
   const moving = reasons.has('scrub') || reasons.has('anim');
-  if (!moving) drawSun();
+  if (!moving) { drawSun(); drawCabinet(); }
   drawMap();
   // l'encre sèche quand le temps s'arrête : les annotations reviennent à l'arrêt
   stage.classList.toggle('is-moving', moving);

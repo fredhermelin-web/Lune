@@ -89,6 +89,13 @@ export function moonAt(date, obs, mode = 'sky') {
   };
 }
 
+/** Hauteur du Soleil (degrés), pour la couleur du ciel. */
+export function sunAltitude(date, obs) {
+  const t = A.MakeTime(date);
+  const eq = A.Equator(Sun, t, obs, true, true);
+  return A.Horizon(t, obs, eq.ra, eq.dec, 'normal').altitude;
+}
+
 /** Données « lentes » : position dans le ciel, constellation, signe. */
 export function moonSky(date, obs) {
   const t = A.MakeTime(date);
