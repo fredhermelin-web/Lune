@@ -523,3 +523,30 @@ body.in-scope .margin { opacity: 0; }
   font-family: var(--serif); font-style: italic; font-size: 20px; color: #efe1c0; margin: 0; }
 .ep-cap small { display: block; font-style: normal; font-family: var(--sans); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #b39260; margin-top: 6px; }
 body.in-scope :is(.topbar, .month, .strip, .phase, .riseset, .cycle, .more, .noct-btn, .seal-btn, .scope-btn, .today) { opacity: 0; transition: opacity .6s ease; }
+
+/* l'encrier et la bougie sont des objets qu'on touche ; les onglets leur laissent la place */
+.tabs { padding-left: 56px; padding-right: 50px; }
+.desk-obj { pointer-events: auto; cursor: pointer; background: none; border: 0; padding: 0; }
+.desk-obj:active svg { transform: translateY(1px) scale(.97); }
+.desk-ink { width: 50px; height: 60px; left: 2px; }
+.desk-candle[aria-pressed="true"] .c-halo { opacity: 1; }
+
+/* parchemin : le bas des pages plus lisible */
+.sheet.book { box-shadow: 0 -14px 44px rgba(0, 0, 0, .7), inset 0 0 28px rgba(120, 85, 40, .2); }
+.sheet.book .motto-small { font-size: 22px; color: #6b4520; margin-top: 30px; }
+.sheet.book .folio { font-size: 16px; color: #5c4630; letter-spacing: .04em; }
+.sheet.book .row dd small { color: #4f3b24; font-size: 14px; }
+.sheet.book .lead { color: #4f3b24; font-size: 16px; }
+.sheet.book .alm-year summary, .sheet.book .fold summary { font-size: 19px; color: #7a4a18; }
+.sheet.book .alm dd.soft small { color: #4f3b24; }
+
+/* le carnet */
+.note-input { width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; border: 1px solid #b89a62; background: #f9f2e1;
+  font-family: var(--serif); font-size: 18px; color: #1f160c; resize: vertical; user-select: text; -webkit-user-select: text; }
+.note-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.note-ctx { font-size: 13px; color: #5c4630; }
+.note { border-bottom: 1px solid rgba(120, 90, 50, .25); padding: 10px 0; }
+.note-head { display: flex; justify-content: space-between; align-items: center; margin: 0; font-size: 14px; color: #7a4a18; font-family: var(--serif); font-style: italic; }
+.note-del { color: #8a6a3c; font-size: 14px; padding: 4px 8px; }
+.note-body { font-family: var(--serif); font-size: 19px; line-height: 1.5; color: #1f160c; margin: 4px 0; white-space: pre-wrap; }
+.note-meta { margin: 0; font-size: 13px; color: #5c4630; }

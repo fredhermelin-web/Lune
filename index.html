@@ -98,8 +98,8 @@
   </main>
 
   <nav class="tabs" aria-label="Espaces">
-    <div class="desk-obj desk-ink" id="desk-ink" aria-hidden="true"></div>
-    <div class="desk-obj desk-candle" id="desk-candle" aria-hidden="true"></div>
+    <button class="desk-obj desk-ink" id="desk-ink" aria-label="Le carnet de l’astronome"></button>
+    <button class="desk-obj desk-candle" id="desk-candle" aria-pressed="false" aria-label="La veillée : passer en lumière rouge"></button>
     <button class="tab is-active" data-view="view-moon"><svg viewBox="0 0 20 20" class="ico"><path d="M13.5 3.2A7.2 7.2 0 1 0 16.8 13 5.8 5.8 0 0 1 13.5 3.2Z"/></svg><span>Lune</span></button>
     <button class="tab" data-view="view-sun"><svg viewBox="0 0 20 20" class="ico"><circle cx="10" cy="10" r="3.4"/><path d="M10 1.5v2.2M10 16.3v2.2M1.5 10h2.2M16.3 10h2.2M4 4l1.6 1.6M14.4 14.4 16 16M4 16l1.6-1.6M14.4 5.6 16 4"/></svg><span>Soleil</span></button>
     <button class="tab" data-view="view-sky"><svg viewBox="0 0 20 20" class="ico"><path d="M10 2.5l1.6 4.9h5.1l-4.1 3 1.6 4.9-4.2-3-4.2 3 1.6-4.9-4.1-3h5.1Z"/></svg><span>Ciel</span></button>
@@ -120,6 +120,12 @@
   <div class="sheet book" id="ursa" aria-hidden="true">
     <div class="sheet-grip" id="ursa-grip"><span></span></div>
     <div class="sheet-body" id="ursa-body"></div>
+  </div>
+
+  <!-- Carnet de l'astronome -->
+  <div class="sheet book" id="carnet" aria-hidden="true">
+    <div class="sheet-grip" id="carnet-grip"><span></span></div>
+    <div class="sheet-body" id="carnet-body"></div>
   </div>
 
   <!-- Page secrète -->

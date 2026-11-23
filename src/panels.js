@@ -124,7 +124,7 @@ export function renderSettings(body, onChange) {
     Calculs : astronomy-engine, Don Cross (licence MIT).<br>
     Étoiles : d3-celestial (O. Frohn) d’après la base HYG (D. Nash).<br>Recherche de commune : Base Adresse Nationale (IGN / data.gouv.fr).</p>
     <p class="motto-small">Ursine, le temps venra</p>
-    <p class="credit" style="text-align:center">Version 10 · l’atelier</p>`;
+    <p class="credit" style="text-align:center">Version 11 · le carnet</p>`;
 
   body.querySelectorAll('.switch').forEach((b) => b.addEventListener('click', () => {
     const k = b.dataset.key;

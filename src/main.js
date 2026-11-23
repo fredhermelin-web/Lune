@@ -17,6 +17,7 @@ import { saveSettings } from './state.js';
 import { initMarginalia } from './marginalia.js';
 import { renderSun } from './sun.js';
 import { INKWELL, CANDLE, TELESCOPE, openEyepiece } from './atelier.js';
+import { renderCarnet } from './carnet.js';
 import { initSkyMap } from './skymap.js';
 import { direction as dirName, time as fmtTime } from './format.js';
 
@@ -108,6 +109,24 @@ $('seal-btn').innerHTML = sealSvg();
 // ---------- l'atelier : encrier, bougie, lunette ----------
 $('desk-ink').innerHTML = INKWELL;
 $('desk-candle').innerHTML = CANDLE;
+const carnetPanel = initSheet($('carnet'), $('carnet-grip'), {
+  onOpen: () => renderCarnet($('carnet-body'), {
+    date: clock.date, phaseName: last?.phase?.name || '', placeName: place.source === 'gps' ? 'position GPS' : place.name,
+  }),
+});
+$('desk-ink').addEventListener('click', () => carnetPanel.open());
+// la bougie : la veillée, lumière rouge pour garder les yeux de la nuit
+function setVeillee(on) {
+  document.body.classList.toggle('night-red', on);
+  $('desk-candle').setAttribute('aria-pressed', String(on));
+  $('map-red')?.setAttribute('aria-pressed', String(on));
+}
+$('desk-candle').addEventListener('click', () => {
+  const on = !document.body.classList.contains('night-red');
+  setVeillee(on);
+  document.querySelectorAll('.thought').forEach((t) => t.remove());
+  showThought({ text: on ? 'La veillée : tout passe en lumière rouge, tes yeux gardent la nuit.' : 'Fin de la veillée.', duration: 2600 }, true);
+});
 $('scope-btn').innerHTML = TELESCOPE;
 $('scope-btn').addEventListener('pointerdown', (e) => e.stopPropagation());
 $('scope-btn').addEventListener('click', (e) => {
@@ -178,11 +197,7 @@ $('map-names').addEventListener('click', (e) => {
   e.currentTarget.setAttribute('aria-pressed', String(on));
   skymap.setLabels(on);
 });
-$('map-red').addEventListener('click', (e) => {
-  const on = !document.body.classList.contains('night-red');
-  document.body.classList.toggle('night-red', on);
-  e.currentTarget.setAttribute('aria-pressed', String(on));
-});
+$('map-red').addEventListener('click', () => setVeillee(!document.body.classList.contains('night-red')));
 document.querySelectorAll('.map-step').forEach((b) => b.addEventListener('click', () => {
   animateTo(clock.offset + Number(b.dataset.h) / 24, 350);
 }));
